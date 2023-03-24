@@ -1,0 +1,51 @@
+{
+	"code": "pondtemplate",
+	"class": "fieldsofsalt:pondtemplate",
+	"attributes": {
+		"template": {
+			"border": {
+				"code": "game:rockpolished-{rock}",
+				"variantgroups": [
+					{
+						"code": "rock",
+						"states": [ "whitemarble", "greenmarble", "redmarble", "suevite", "kimberlite" ],
+						"loadFromProperties": "game:block/rock"
+					}
+				]
+			},
+			"bottom": {
+				"code": "game:polishedrockslab-{rock}-down-free",
+				"variantgroups": [
+					{
+						"code": "rock",
+						"states": [ "whitemarble", "greenmarble", "redmarble", "suevite", "kimberlite" ],
+						"loadFromProperties": "game:block/rock"
+					}
+				]
+			},
+			"connector": {
+				"code": "connector-{rock}-{side}",
+				"variantgroups": [
+					{
+						"code": "rock",
+						"states": [ "whitemarble", "greenmarble", "redmarble", "suevite", "kimberlite" ],
+						"loadFromProperties": "game:block/rock"
+					},
+					{
+						"code": "side",
+						"states": [ "ns", "we" ]
+					}
+				]
+			},
+			"maxSize": 31
+		},
+		"multiblock": {
+			"main": {
+				"code": "pondmain"
+			},
+			"surrogate": {
+				"code": "surrogate-render"
+			}
+		}
+	}
+}

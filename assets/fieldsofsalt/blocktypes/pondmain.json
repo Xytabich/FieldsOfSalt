@@ -1,0 +1,25 @@
+{
+	"code": "pondmain",
+	"class": "fieldsofsalt:pond",
+	"entityclass": "fieldsofsalt:pond",
+	"attributes": {
+		"recipes": [
+			{
+				"input": {
+					"code": "game:saltwaterportion",
+					"quantity": 200
+				},
+				"output": {
+					"code": "game:salt",
+					"quantity": 1
+				}
+			}
+		]
+	},
+	"shape": { "base": "game:block/basic/cube" },
+	"sideSolidOpaque": {
+		"all": false,
+		"down": true
+	},
+	"drops": []
+}

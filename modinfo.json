@@ -1,0 +1,11 @@
+{
+	"type": "code",
+	"modid": "fieldsofsalt",
+	"name": "Fields of Salt",
+	"authors": [ "Xytabich" ],
+	"description": "Adds ponds to evaporate seawater and produce salt",
+	"version": "1.0.0",
+	"dependencies": {
+		"game": "1.18.0-pre.3"
+	}
+}

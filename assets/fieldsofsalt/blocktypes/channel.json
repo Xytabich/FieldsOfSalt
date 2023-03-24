@@ -1,0 +1,116 @@
+// obj =
+{
+	"code": "channel",
+	"class": "fieldsofsalt:channel",
+	"behaviors": [{ "name": "NWOrientable" }],
+	"variantgroups": [
+		{
+			"code": "side",
+			"states": ["ns", "we"]
+		}
+	],
+	"shapebytype": {
+		"*-ns": {
+			"base": "block/channel",
+			"rotateY": 90,
+			alternates: [
+				{ "base": "block/channel", "rotateY": 90 },
+				{ "base": "block/channel-e", "rotateY": 90 },
+				{ "base": "block/channel-e", "rotateY": 270 },
+				{ "base": "block/channel", "rotateY": 90 },
+
+				{ "base": "block/channel-e", "rotateY": 180 },
+				{ "base": "block/channel-c", "rotateY": 180 },
+				{ "base": "block/channel-c", "rotateY": 270 },
+				{ "base": "block/channel-t", "rotateY": 180 },
+
+				{ "base": "block/channel-e", "rotateY": 0 },
+				{ "base": "block/channel-c", "rotateY": 90 },
+				{ "base": "block/channel-c", "rotateY": 0 },
+				{ "base": "block/channel-t", "rotateY": 0 },
+
+				{ "base": "block/channel", "rotateY": 180 },
+				{ "base": "block/channel-t", "rotateY": 90 },
+				{ "base": "block/channel-t", "rotateY": 270 },
+				{ "base": "block/channel-p", "rotateY": 90 }
+			]
+		},
+		"*-we": {
+			"base": "block/channel",
+			"rotateY": 0,
+			alternates: [
+				{ "base": "block/channel", "rotateY": 0 },
+				{ "base": "block/channel-e", "rotateY": 180 },
+				{ "base": "block/channel-e", "rotateY": 0 },
+				{ "base": "block/channel", "rotateY": 0 },
+
+				{ "base": "block/channel-e", "rotateY": 90 },
+				{ "base": "block/channel-c", "rotateY": 180 },
+				{ "base": "block/channel-c", "rotateY": 90 },
+				{ "base": "block/channel-t", "rotateY": 90 },
+
+				{ "base": "block/channel-e", "rotateY": 270 },
+				{ "base": "block/channel-c", "rotateY": 270 },
+				{ "base": "block/channel-c", "rotateY": 0 },
+				{ "base": "block/channel-t", "rotateY": 270 },
+
+				{ "base": "block/channel", "rotateY": 90 },
+				{ "base": "block/channel-t", "rotateY": 180 },
+				{ "base": "block/channel-t", "rotateY": 0 },
+				{ "base": "block/channel-p", "rotateY": 0 }
+			]
+		}
+	},
+	"attributes": {
+		"fillAreas": [
+			[
+				0.25, 0.25, 0.0,
+				0.75, 0.875, 0.25
+			],
+			[
+				0.75, 0.25, 0.25,
+				1.0, 0.875, 0.75
+			],
+			[
+				0.25, 0.25, 0.75,
+				0.75, 0.875, 1.0
+			],
+			[
+				0.0, 0.25, 0.25,
+				0.25, 0.875, 0.75
+			],
+			[
+				0.25, 0.25, 0.25,
+				0.75, 0.875, 0.75
+			]
+		]
+	},
+	"creativeinventory": {
+		"general": ["*-ns"],
+		"decorative": ["*-ns"]
+	},
+	"textures": {
+		"bottom-inside": { base: "game:block/wood/trough/large/bottom-inside" },
+		"legs": { base: "game:block/wood/trough/large/legs" },
+		"outer-ring": { base: "game:block/wood/trough/large/outer-ring" },
+		"wood": { base: "game:block/wood/trough/large/wood" }
+	},
+	"blockmaterial": "Wood",
+	"replaceable": 550,
+	"resistance": 2,
+	"lightAbsorption": 0,
+	"groundTransform": {
+		"origin": {
+			"x": 0.5,
+			"y": 0,
+			"z": 0.5
+		},
+		"scale": 2.5
+	},
+	"sidesolid": {
+		"all": false
+	},
+	"sideopaque": {
+		"all": false
+	}
+}

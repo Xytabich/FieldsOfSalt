@@ -1,0 +1,58 @@
+// obj =
+{
+	"code": "source",
+	"class": "fieldsofsalt:source",
+	"entityclass": "fieldsofsalt:source",
+	"behaviors": [{ "name": "HorizontalOrientable" }],
+	variantgroups: [
+		{ code: "side", loadFromProperties: "abstract/horizontalorientation" }
+	],
+	"attributes": {
+		"fillAreaByType": {
+			"*-north": [
+				0.125, 0.25, 0.0625,
+				0.875, 0.875, 1.0
+			],
+			"*-south": [
+				0.125, 0.25, 0.0,
+				0.875, 0.875, 0.9375
+			],
+			"*-west": [
+				0.0625, 0.25, 0.125,
+				1.0, 0.875, 0.875
+			],
+			"*-east": [
+				0.0, 0.25, 0.125,
+				0.9375, 0.875, 0.875
+			]
+		}
+	},
+	"creativeinventory": {
+		"general": ["*-north"],
+		"decorative": ["*-north"]
+	},
+	shapebytype: {
+		"*-north": { base: "block/channel-s", rotateY: 90 },
+		"*-east": { base: "block/channel-s", rotateY: 0 },
+		"*-south": { base: "block/channel-s", rotateY: 270 },
+		"*-west": { base: "block/channel-s", rotateY: 180 },
+	},
+	"blockmaterial": "Wood",
+	"replaceable": 550,
+	"resistance": 2,
+	"lightAbsorption": 0,
+	"groundTransform": {
+		"origin": {
+			"x": 0.5,
+			"y": 0,
+			"z": 0.5
+		},
+		"scale": 2.5
+	},
+	"sidesolid": {
+		"all": false
+	},
+	"sideopaque": {
+		"all": false
+	}
+}

@@ -1,0 +1,14 @@
+{
+	"code": "surrogate",
+	"variantgroups": [
+		{
+			"code": "type",
+			"states": [ "render" ]
+		}
+	],
+	"classByType": {
+		"*-render": "fieldsofsalt:rendersurrogate"
+	},
+	"shape": { "base": "game:block/basic/cube" },
+	"drops": []
+}
