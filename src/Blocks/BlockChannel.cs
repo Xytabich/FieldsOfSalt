@@ -105,14 +105,14 @@ namespace FieldsOfSalt.Blocks
 			{
 				if((connectedSides & 1) != 0)
 				{
-					ChannelMeshUtil.AddLiquidMesh(outMesh, fillAreas[i]);
+					GraphicUtil.AddLiquidMesh(outMesh, fillAreas[i]);
 				}
 				connectedSides >>= 1;
 			}
 
 			float* heights = stackalloc float[4];
-			ChannelMeshUtil.GetLiquidHeightsHorizontal(levels, fillAreas, heights);
-			ChannelMeshUtil.MultiplyLiquidHeightsHorizontal(outMesh, heights);
+			GraphicUtil.GetLiquidHeightsHorizontal(levels, fillAreas, heights);
+			GraphicUtil.MultiplyLiquidHeightsHorizontal(outMesh, heights);
 		}
 
 		public void AddSink(IBlockAccessor blockAccessor, BlockPos pos, BlockFacing face, ILiquidSink sink)

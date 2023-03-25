@@ -1,5 +1,6 @@
 ﻿using FieldsOfSalt.Blocks.Entities;
 using FieldsOfSalt.Recipes;
+using FieldsOfSalt.Utils;
 using System;
 using System.Collections.Generic;
 using Vintagestory.API.Client;
@@ -156,6 +157,7 @@ namespace FieldsOfSalt.Blocks
 				var recipes = new List<EvaporationRecipe>();
 				try
 				{
+					var capi = api as ICoreClientAPI;
 					var list = Attributes?["recipes"].AsArray<EvaporationRecipe>(null, Code.Domain);
 					if(list != null)
 					{
@@ -166,6 +168,11 @@ namespace FieldsOfSalt.Blocks
 								if(list[i].Output.Resolve(api.World, "evaporation recipe output"))
 								{
 									recipes.Add(list[i]);
+
+									if(capi != null)
+									{
+										GraphicUtil.BakeTexture(capi, list[i].ResultTexture, "Evaporation recipe", out _);
+									}
 								}
 							}
 						}

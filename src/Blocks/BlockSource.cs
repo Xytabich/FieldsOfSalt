@@ -33,11 +33,11 @@ namespace FieldsOfSalt.Blocks
 
 		public unsafe void GenLiquidMesh(IBlockAccessor blockAccessor, BlockPos pos, MeshData outMesh, int[] levels)
 		{
-			ChannelMeshUtil.AddLiquidMesh(outMesh, fillArea);
+			GraphicUtil.AddLiquidMesh(outMesh, fillArea);
 
 			float* heights = stackalloc float[4];
-			ChannelMeshUtil.GetLiquidHeightsHorizontal(levels, fillArea, heights);
-			ChannelMeshUtil.MultiplyLiquidHeightsHorizontal(outMesh, heights);
+			GraphicUtil.GetLiquidHeightsHorizontal(levels, fillArea, heights);
+			GraphicUtil.MultiplyLiquidHeightsHorizontal(outMesh, heights);
 		}
 
 		public void AddSink(IBlockAccessor blockAccessor, BlockPos pos, BlockFacing face, ILiquidSink sink)

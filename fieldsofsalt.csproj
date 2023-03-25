@@ -88,7 +88,7 @@
     <Compile Include="src\FieldsOfSaltMod.cs" />
     <Compile Include="src\Items\ItemPondTemplate.cs" />
     <Compile Include="src\Recipes\EvaporationRecipe.cs" />
-    <Compile Include="src\Utils\ChannelMeshUtil.cs" />
+    <Compile Include="src\Utils\FMeshUtil.cs" />
     <Compile Include="src\Utils\TreeAttributeUtils.cs" />
   </ItemGroup>
   <ItemGroup>

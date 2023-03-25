@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.GameContent;
 
@@ -11,6 +12,9 @@ namespace FieldsOfSalt.Recipes
 		public JsonItemStack Input;
 		[JsonProperty(Required = Required.Always)]
 		public JsonItemStack Output;
+
+		[JsonProperty(Required = Required.Always)]
+		public CompositeTexture ResultTexture;
 
 		/// <summary>
 		/// How long does it take to complete a recipe at 20C.

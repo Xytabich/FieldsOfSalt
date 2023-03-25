@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FieldsOfSalt.Utils;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Vintagestory.API.Client;
@@ -44,7 +45,7 @@ namespace FieldsOfSalt.Blocks.Entities
 					fillLevel = channelLine.Length + 8;
 					if(Api.Side == EnumAppSide.Client)
 					{
-						BakeTexture((ICoreClientAPI)Api, fluidProps.Texture, out fluidTexture);
+						GraphicUtil.BakeTexture((ICoreClientAPI)Api, fluidProps.Texture, "Liquid source", out fluidTexture);
 					}
 				}
 				else
@@ -214,7 +215,7 @@ namespace FieldsOfSalt.Blocks.Entities
 						{
 							if(Api.Side == EnumAppSide.Client)
 							{
-								BakeTexture((ICoreClientAPI)Api, fluidProps.Texture, out fluidTexture);
+								GraphicUtil.BakeTexture((ICoreClientAPI)Api, fluidProps.Texture, "Liquid source", out fluidTexture);
 							}
 						}
 						else
@@ -253,6 +254,11 @@ namespace FieldsOfSalt.Blocks.Entities
 				fillLevels[face.Index] = Math.Min(fillLevel, 7);
 				int level = fillLevel - 1;
 
+				if(channelLine.Length == 0 && sinks.Count == 0)
+				{
+					level = 0;
+				}
+
 				fillLevels[face.Opposite.Index] = Math.Min(level, 7);
 				fillLevels[side.Index] = Math.Min(level, 7);
 				fillLevels[side.Opposite.Index] = Math.Min(level, 7);
@@ -269,34 +275,37 @@ namespace FieldsOfSalt.Blocks.Entities
 					mesher.AddMeshData(tmpMesh);
 				}
 
-				var tmpPos = Pos.Copy();
-				var dir = face.Opposite;
-				var offset = new Vec3f();
-				for(int i = 0; i < channelLine.Length; i++)
+				if(channelLine.Length > 0)
 				{
-					if(level <= 0) break;
-
-					tmpPos.Add(dir);
-					offset.Add(dir.Normalf.X, dir.Normalf.Y, dir.Normalf.Z);
-
-					fillLevels[face.Index] = Math.Min(level, 7);
-					level--;
-
-					fillLevels[face.Opposite.Index] = Math.Min(level, 7);
-					fillLevels[side.Index] = Math.Min(level, 7);
-					fillLevels[side.Opposite.Index] = Math.Min(level, 7);
-					tmpMesh.Clear();
-					(Api.World.GetBlock(channelLine[i]) as ILiquidChannel)?.GenLiquidMesh(accessor, tmpPos, tmpMesh, fillLevels);
-					if(tmpMesh.VerticesCount > 0)
+					var tmpPos = Pos.Copy();
+					var dir = face.Opposite;
+					var offset = new Vec3f();
+					for(int i = 0; i < channelLine.Length; i++)
 					{
-						for(int j = 0; j < tmpMesh.VerticesCount; j++)
+						if(level <= 0) break;
+
+						tmpPos.Add(dir);
+						offset.Add(dir.Normalf.X, dir.Normalf.Y, dir.Normalf.Z);
+
+						fillLevels[face.Index] = Math.Min(level, 7);
+						level--;
+
+						fillLevels[face.Opposite.Index] = Math.Min(level, 7);
+						fillLevels[side.Index] = Math.Min(level, 7);
+						fillLevels[side.Opposite.Index] = Math.Min(level, 7);
+						tmpMesh.Clear();
+						(Api.World.GetBlock(channelLine[i]) as ILiquidChannel)?.GenLiquidMesh(accessor, tmpPos, tmpMesh, fillLevels);
+						if(tmpMesh.VerticesCount > 0)
 						{
-							tmpMesh.Rgba[j * 4] = 127;
+							for(int j = 0; j < tmpMesh.VerticesCount; j++)
+							{
+								tmpMesh.Rgba[j * 4] = 127;
+							}
+							tmpMesh.Translate(offset);
+							tmpMesh.SetTexPos(fluidTexture);
+							tmpMesh.RenderPassesAndExtraBits.Fill((short)EnumChunkRenderPass.Transparent);
+							mesher.AddMeshData(tmpMesh);
 						}
-						tmpMesh.Translate(offset);
-						tmpMesh.SetTexPos(fluidTexture);
-						tmpMesh.RenderPassesAndExtraBits.Fill((short)EnumChunkRenderPass.Transparent);
-						mesher.AddMeshData(tmpMesh);
 					}
 				}
 			}
@@ -354,7 +363,7 @@ namespace FieldsOfSalt.Blocks.Entities
 				{
 					if(fluidProps != null && Api.Side == EnumAppSide.Client)
 					{
-						BakeTexture((ICoreClientAPI)Api, fluidProps.Texture, out fluidTexture);
+						GraphicUtil.BakeTexture((ICoreClientAPI)Api, fluidProps.Texture, "Liquid source", out fluidTexture);
 					}
 					ResetLiquidLayer(blockAccessor);
 					MarkDirty(true);
@@ -499,31 +508,6 @@ namespace FieldsOfSalt.Blocks.Entities
 			fluidStack = null;
 			fluidProps = null;
 			return false;
-		}
-
-		private static void BakeTexture(ICoreClientAPI capi, CompositeTexture texture, out TextureAtlasPosition texPos)
-		{
-			var atlas = capi.BlockTextureAtlas;
-			texPos = atlas.UnknownTexturePosition;
-			if(texture != null)
-			{
-				texture.Bake(capi.Assets);
-				if(capi.BlockTextureAtlas.GetOrInsertTexture(texture.Base, out var textureSubId, out var _, () => {
-					IAsset asset = capi.Assets.TryGet(texture.Base.Clone().WithPathPrefixOnce("textures/").WithPathAppendixOnce(".png"));
-					if(asset != null)
-					{
-						return asset.ToBitmap(capi);
-					}
-					capi.World.Logger.Warning("Liquid source defined texture {0}, no such texture found.", texture.Base);
-					return null;
-				}))
-				{
-					texture.Baked.TextureSubId = textureSubId;
-
-					var texId = texture.Baked?.TextureSubId;
-					texPos = texId.HasValue ? atlas.Positions[texId.Value] : atlas.UnknownTexturePosition;
-				}
-			}
 		}
 
 		private readonly struct SinkInfo

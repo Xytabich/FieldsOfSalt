@@ -38,8 +38,11 @@ namespace FieldsOfSalt.Blocks.Entities
 		private bool markDirtyNext = false;
 		private bool removeInvalidStructure = false;
 
+		private TextureAtlasPosition liquidTexture = null;
 		private ItemStack currentLiquidStack = null;
 		private EvaporationRecipe recipe = null;
+
+		private MeshData mesh = null;
 
 		private FieldsOfSaltMod mod;
 
@@ -50,7 +53,7 @@ namespace FieldsOfSalt.Blocks.Entities
 			if(removeInvalidStructure)
 			{
 				mod.RemoveReferenceToMainBlock(Pos, Pos);
-				Api.Logger.Warning("Received invalid multiblock structure from tree attributes, block will be removed");
+				Api.Logger.Warning("Received invalid multiblock structure from tree attributes, block at {0} will be removed", Pos);
 				Api.World.BlockAccessor.SetBlock(0, Pos);
 				return;
 			}
@@ -164,7 +167,7 @@ namespace FieldsOfSalt.Blocks.Entities
 				if(Api != null)
 				{
 					mod.RemoveReferenceToMainBlock(Pos, Pos);
-					Api.Logger.Warning("Received invalid multiblock structure from tree attributes, block will be removed");
+					Api.Logger.Warning("Received invalid multiblock structure from tree attributes, block at {0} will be removed", Pos);
 					Api.World.BlockAccessor.SetBlock(0, Pos);
 					return;
 				}
@@ -194,12 +197,90 @@ namespace FieldsOfSalt.Blocks.Entities
 		public override bool OnTesselation(ITerrainMeshPool mesher, ITesselatorAPI tessThreadTesselator)
 		{
 			var recipe = this.recipe;
-			if(this.recipe != null)
+			if(recipe != null)
 			{
+				if(mesh == null) mesh = new MeshData(24, 36).WithColorMaps().WithRenderpasses().WithXyzFaces();
+				int sx = size.X - 2;
+				int sz = size.Y - 2;
+				int cx = sx >> 1;
+				int cz = sz >> 1;
 
+				var capi = (ICoreClientAPI)Api;
+				var liquidTexture = this.liquidTexture ?? capi.BlockTextureAtlas.UnknownTexturePosition;
+				int liquidColor = ColorUtil.ColorFromRgba(255, 255, 255, 127);
+
+				var bakedCT = recipe.ResultTexture?.Baked;
+				var contentTexture = bakedCT == null ? capi.BlockTextureAtlas.UnknownTexturePosition : capi.BlockTextureAtlas.Positions[bakedCT.TextureSubId];
+				int contentColor = -1;
+
+				mesh.Clear();
+				var offset = new Vec3f();
+				float liquidLevel = (currentLiquidStack == null || liquidCapacity <= 0) ? 0f : (Math.Min(currentLiquidStack.StackSize / (float)liquidCapacity, 1f) * 0.8f);
+				for(int z = 0; z < sz; z++)
+				{
+					int oz = z * sx;
+					for(int x = 0; x < sx; x++)
+					{
+						offset.X = (x - cx) + 0.5f;
+						offset.Z = (z - cz) + 0.5f;
+						int i = oz + x;
+						const float m = 1f / 15f;
+						float level = ((i & 1) == 0 ? layersPacked[i >> 1] : (layersPacked[i >> 1] >> 4)) * m;
+						if(level < liquidLevel)
+						{
+							offset.Y = 0.5f + liquidLevel * 0.5f;
+							GraphicUtil.AddLiquidBlockMesh(mesh, offset, liquidTexture, liquidColor);
+						}
+						if(level > 0)
+						{
+							offset.Y = 0.5f;
+							GraphicUtil.AddContentMesh(mesh, offset, level * 0.5f, contentTexture, contentColor);
+						}
+					}
+				}
+				if(mesh.VerticesCount > 0)
+				{
+					mesher.AddMeshData(mesh);
+				}
 			}
-			//TODO: tesselate
 			return base.OnTesselation(mesher, tessThreadTesselator);
+		}
+
+		public override void OnLoadCollectibleMappings(IWorldAccessor worldForNewMappings, Dictionary<int, AssetLocation> oldBlockIdMapping, Dictionary<int, AssetLocation> oldItemIdMapping, int schematicSeed)
+		{
+			base.OnLoadCollectibleMappings(worldForNewMappings, oldBlockIdMapping, oldItemIdMapping, schematicSeed);
+			if(blockIds != null)
+			{
+				for(int i = 0; i < blockIds.Length; i++)
+				{
+					if(blockIds[i] == 0) continue;
+					if(!oldBlockIdMapping.TryGetValue(blockIds[i], out var code))
+					{
+						blockIds[i] = 0;
+						continue;
+					}
+					var block = worldForNewMappings.GetBlock(code);
+					if(block == null)
+					{
+						blockIds[i] = 0;
+						continue;
+					}
+					blockIds[i] = block.Id;
+				}
+			}
+		}
+
+		public override void OnStoreCollectibleMappings(Dictionary<int, AssetLocation> blockIdMapping, Dictionary<int, AssetLocation> itemIdMapping)
+		{
+			base.OnStoreCollectibleMappings(blockIdMapping, itemIdMapping);
+			if(blockIds != null)
+			{
+				for(int i = 0; i < blockIds.Length; i++)
+				{
+					if(blockIds[i] == 0) continue;
+					blockIdMapping[blockIds[i]] = Api.World.GetBlock(blockIds[i]).Code;
+				}
+			}
 		}
 
 		public void DisassembleMultiblock()
