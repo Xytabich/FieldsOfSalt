@@ -191,6 +191,17 @@ namespace FieldsOfSalt.Blocks.Entities
 			}
 		}
 
+		public override bool OnTesselation(ITerrainMeshPool mesher, ITesselatorAPI tessThreadTesselator)
+		{
+			var recipe = this.recipe;
+			if(this.recipe != null)
+			{
+
+			}
+			//TODO: tesselate
+			return base.OnTesselation(mesher, tessThreadTesselator);
+		}
+
 		public void DisassembleMultiblock()
 		{
 			layersPacked = null;//TODO: drop all items
@@ -236,7 +247,10 @@ namespace FieldsOfSalt.Blocks.Entities
 
 		public void OnBlockInteract(IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel)
 		{
-			//TODO: pick result
+			if(byPlayer.Entity.ActiveHandItemSlot?.Itemstack?.Collectible.Tool == EnumTool.Hoe)
+			{
+				//TODO: pick result
+			}
 		}
 
 		public WorldInteraction[] GetInteractionHelp(IWorldAccessor world, BlockSelection selection, IPlayer forPlayer)

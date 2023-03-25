@@ -1,4 +1,5 @@
-﻿using FieldsOfSalt.Blocks.Entities;
+﻿using FieldsOfSalt.Blocks;
+using FieldsOfSalt.Blocks.Entities;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -6,6 +7,7 @@ using System.Text;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
+using Vintagestory.API.Server;
 using Vintagestory.ServerMods.NoObf;
 
 namespace FieldsOfSalt.Items
@@ -48,14 +50,13 @@ namespace FieldsOfSalt.Items
 						y.Value,
 						Math.Max(z.Value, blockSel.Position.Z)
 					);
-					TryCreateStructure(fromPos, toPos);
+					TryCreateStructure(fromPos, toPos, (byEntity as EntityPlayer)?.Player as IServerPlayer);
 				}
 				else
 				{
 					attr.SetInt("startX", blockSel.Position.X);
 					attr.SetInt("startY", blockSel.Position.Y);
 					attr.SetInt("startZ", blockSel.Position.Z);
-					(api as ICoreClientAPI)?.ShowChatMessage("First point selected at: ");
 					slot.MarkDirty();
 				}
 			}
@@ -72,13 +73,79 @@ namespace FieldsOfSalt.Items
 			return interactHelp;
 		}
 
-		private void TryCreateStructure(BlockPos fromPos, BlockPos toPos)
+		private void TryCreateStructure(BlockPos fromPos, BlockPos toPos, IServerPlayer player)
 		{
 			EnsureTemplate();
 			if(templateInvalid) return;
+			if(toPos.X - fromPos.X < 5 || toPos.Z - fromPos.Z < 5)
+			{
+				if(player != null) (api as ICoreServerAPI).SendIngameError(player, "fieldsofsalt:structuretoosmall");
+				return;
+			}
 
-			//TODO: check structure
+			var accessor = api.World.GetLockFreeBlockAccessor();
+			int fromX = fromPos.X + 1;
+			int toX = toPos.X - 1;
+			int fromZ = fromPos.Z + 1;
+			int toZ = toPos.Z - 1;
+			int x, z;
+
+			var tmpPos = fromPos.Copy();
+			for(x = fromX; x <= toX; x++)
+			{
+				tmpPos.X = x;
+				tmpPos.Y = fromPos.Y;
+				tmpPos.Z = fromPos.Z;
+				if(CheckBorderInvalid(accessor, tmpPos, BlockFacing.NORTH, player)) return;
+				tmpPos.Z = toPos.Z;
+				if(CheckBorderInvalid(accessor, tmpPos, BlockFacing.SOUTH, player)) return;
+			}
+			for(z = fromZ; z <= toZ; z++)
+			{
+				tmpPos.Z = z;
+				tmpPos.Y = fromPos.Y;
+				tmpPos.X = fromPos.X;
+				if(CheckBorderInvalid(accessor, tmpPos, BlockFacing.WEST, player)) return;
+				tmpPos.X = toPos.X;
+				if(CheckBorderInvalid(accessor, tmpPos, BlockFacing.EAST, player)) return;
+			}
+
+			tmpPos.Y = fromPos.Y;
+			for(x = fromX; x <= toX; x++)
+			{
+				tmpPos.X = x;
+				for(z = fromZ; z <= toZ; z++)
+				{
+					tmpPos.Z = z;
+					var block = accessor.GetBlock(tmpPos);
+					if(!template.Bottom.BlockVariants.Contains(block.Id))
+					{
+						if(player != null) (api as ICoreServerAPI).SendIngameError(player, "fieldsofsalt:invalidbottomblock");
+						return;
+					}
+				}
+			}
+
 			BlockEntityPond.CreateStructure(api.World, fromPos, toPos, mainBlock, surrogateBlock);
+		}
+
+		private bool CheckBorderInvalid(IBlockAccessor accessor, BlockPos pos, BlockFacing facing, IServerPlayer player)
+		{
+			var block = accessor.GetBlock(pos);
+			if(!template.Border.BlockVariants.Contains(block.Id))
+			{
+				if(!template.Connector.BlockVariants.Contains(block.Id) || !(block is ILiquidSinkConnector connector))
+				{
+					if(player != null) (api as ICoreServerAPI).SendIngameError(player, "fieldsofsalt:invalidborderblock");
+					return true;
+				}
+				if(!connector.CanConnect(accessor, pos, facing))
+				{
+					if(player != null) (api as ICoreServerAPI).SendIngameError(player, "fieldsofsalt:invalidborderblock");
+					return true;
+				}
+			}
+			return false;
 		}
 
 		private void EnsureTemplate()
@@ -137,7 +204,7 @@ namespace FieldsOfSalt.Items
 
 			public class BlockTemplate : RegistryObjectType
 			{
-				public HashSet<Block> BlockVariants;
+				public HashSet<int> BlockVariants;
 
 				public bool Resolve(IWorldAccessor world, StringBuilder tmpSb, Stack<StateRecord> stateStack, HashSet<string> tmpStates,
 					List<string> variantStates, List<VariantGroup> variantGroups, ref char[] tmpChars, ref Dictionary<AssetLocation, StandardWorldProperty> worldProperties)
@@ -224,8 +291,8 @@ namespace FieldsOfSalt.Items
 						var block = world.GetBlock(Code);
 						if(block != null)
 						{
-							BlockVariants = new HashSet<Block>();
-							BlockVariants.Add(block);
+							BlockVariants = new HashSet<int>();
+							BlockVariants.Add(block.Id);
 						}
 					}
 					return BlockVariants != null;

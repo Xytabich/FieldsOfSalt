@@ -6,7 +6,7 @@ namespace FieldsOfSalt.Blocks
 	public interface ILiquidConnectable
 	{
 		/// <summary>
-		/// Returns whether it is possible to connect from the side.
+		/// Returns whether it is possible to connect to the side.
 		/// </summary>
 		/// <param name="blockAccessor"></param>
 		/// <param name="pos">Connectable position</param>
