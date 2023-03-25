@@ -4,7 +4,7 @@ using Vintagestory.API.MathTools;
 
 namespace FieldsOfSalt.Blocks
 {
-	public class BlockRenderSurrogate : Block, IMultiblockPhantomBlock
+	public class BlockRenderSurrogate : Block, IMultiblockPhantomBlock//TODO: get color override
 	{
 		private FieldsOfSaltMod mod;
 

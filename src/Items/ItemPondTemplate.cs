@@ -83,7 +83,7 @@ namespace FieldsOfSalt.Items
 				if(player != null) (api as ICoreServerAPI).SendIngameError(player, "fieldsofsalt:structuretoosmall");
 				return;
 			}
-			if((toPos.X - fromPos.X + 1) >= template.MaxSize || (toPos.Z - fromPos.Z + 1) >= template.MaxSize)
+			if((toPos.X - fromPos.X + 1) > template.MaxSize || (toPos.Z - fromPos.Z + 1) > template.MaxSize)
 			{
 				if(player != null) (api as ICoreServerAPI).SendIngameError(player, "fieldsofsalt:structuretoobig");
 				return;

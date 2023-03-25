@@ -33,6 +33,7 @@ namespace FieldsOfSalt.Utils
 			cuboidCenter.Y = (fillArea.Y1 + fillArea.Y2) * 0.5f;
 			cuboidCenter.Z = (fillArea.Z1 + fillArea.Z2) * 0.5f;
 			cuboidSize.X = fillArea.Width;
+			cuboidSize.Y = 0;
 			cuboidSize.Z = fillArea.Length;
 			ModelCubeUtilExt.AddFace(outMesh, BlockFacing.UP, cuboidCenter, cuboidSize, cuboidUVOffset, cuboidUVSize, -1, ModelCubeUtilExt.EnumShadeMode.Off, vertexFlags);
 		}
@@ -52,6 +53,7 @@ namespace FieldsOfSalt.Utils
 			cuboidCenter.Y = offset.Y;
 			cuboidCenter.Z = offset.Z;
 			cuboidSize.X = 1;
+			cuboidSize.Y = 0;
 			cuboidSize.Z = 1;
 			ModelCubeUtilExt.AddFace(outMesh, BlockFacing.UP, cuboidCenter, cuboidSize, cuboidUVOffset, cuboidUVSize, color, ModelCubeUtilExt.EnumShadeMode.Off, vertexFlags, renderPass: renderPass);
 		}
@@ -74,6 +76,8 @@ namespace FieldsOfSalt.Utils
 			cuboidSize.Y = height;
 			cuboidSize.Z = 1;
 			ModelCubeUtilExt.AddFace(outMesh, BlockFacing.UP, cuboidCenter, cuboidSize, cuboidUVOffset, cuboidUVSize, color, ModelCubeUtilExt.EnumShadeMode.On, vertexFlags);
+
+			cuboidUVSize.Y = (texPos.y2 - texPos.y1) * height;
 			ModelCubeUtilExt.AddFace(outMesh, BlockFacing.WEST, cuboidCenter, cuboidSize, cuboidUVOffset, cuboidUVSize, color, ModelCubeUtilExt.EnumShadeMode.On, vertexFlags);
 			ModelCubeUtilExt.AddFace(outMesh, BlockFacing.EAST, cuboidCenter, cuboidSize, cuboidUVOffset, cuboidUVSize, color, ModelCubeUtilExt.EnumShadeMode.On, vertexFlags);
 			ModelCubeUtilExt.AddFace(outMesh, BlockFacing.NORTH, cuboidCenter, cuboidSize, cuboidUVOffset, cuboidUVSize, color, ModelCubeUtilExt.EnumShadeMode.On, vertexFlags);

@@ -25,7 +25,7 @@ namespace FieldsOfSalt.Blocks.Entities
 
 		private Vec2i size = null;
 		private ushort[] grid = null;
-		private int[] blockIds = null;//TODO: CollectibleMappings
+		private int[] blockIds = null;
 
 		private byte[] layersPacked = null;//4 bits (15 items) per block
 		private double prevCalendarHour = 0;
@@ -48,6 +48,8 @@ namespace FieldsOfSalt.Blocks.Entities
 
 		private bool multiblockRegistered = false;
 		private FieldsOfSaltMod mod;
+
+		private WorldInteraction[] pickInteractionHelp = null;
 
 		public override void Initialize(ICoreAPI api)
 		{
@@ -235,7 +237,7 @@ namespace FieldsOfSalt.Blocks.Entities
 						int i = oz + x;
 						const float m = 1f / 15f;
 						float level = ((i & 1) == 0 ? (layersPacked[i >> 1] & 15) : (layersPacked[i >> 1] >> 4)) * m;
-						if(level < liquidLevel)
+						if(liquidLevel > level)
 						{
 							offset.Y = 0.5f + liquidLevel * 0.5f;
 							GraphicUtil.AddLiquidBlockMesh(mesh, offset, liquidTexture, liquidColor, (short)EnumChunkRenderPass.Transparent);
@@ -296,7 +298,39 @@ namespace FieldsOfSalt.Blocks.Entities
 
 		public void DisassembleMultiblock()
 		{
-			layersPacked = null;//TODO: drop all items
+			if(layersPacked == null) return;
+
+			var tmpPos = Pos.Copy();
+			var tmpDropPos = new Vec3d();
+			if(recipe != null)
+			{
+				int fromX = (Pos.X - (size.X >> 1)) + 1;
+				int toX = fromX + (size.X - 3);
+				int fromZ = (Pos.Z - (size.Y >> 1)) + 1;
+				int toZ = fromZ + (size.Y - 3);
+				int sizeX = size.X - 2;
+
+				for(int z = fromZ, gz = 0; z <= toZ; z++, gz += sizeX)
+				{
+					tmpPos.Z = z;
+					for(int x = fromX, gx = 0; x <= toX; x++, gx++)
+					{
+						tmpPos.X = x;
+						int i = gz + gx;
+						int amount = (i & 1) == 0 ? (layersPacked[i >> 1] & 15) : (layersPacked[i >> 1] >> 4);
+						if(amount > 0)
+						{
+							tmpDropPos.Set(tmpPos);
+							tmpDropPos.Add(0.5, 1, 0.5);
+
+							var output = recipe.Output.ResolvedItemstack.Clone();
+							output.StackSize = amount;
+							Api.World.SpawnItemEntity(output, tmpDropPos);
+						}
+					}
+				}
+			}
+			layersPacked = null;
 
 			int yStep = size.X;
 			int xLast = size.X - 1;
@@ -304,7 +338,6 @@ namespace FieldsOfSalt.Blocks.Entities
 			int xPosStart = Pos.X - (size.X >> 1);
 
 			var accessor = Api.World.GetBlockAccessorBulkUpdate(false, false);
-			var tmpPos = Pos.Copy();
 			for(int y = 0, zp = (Pos.Z - (size.Y >> 1)); y <= yLast; y += yStep, zp++)
 			{
 				tmpPos.Z = zp;
@@ -341,15 +374,40 @@ namespace FieldsOfSalt.Blocks.Entities
 
 		public void OnBlockInteract(IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel)
 		{
-			if(byPlayer.Entity.ActiveHandItemSlot?.Itemstack?.Collectible.Tool == EnumTool.Hoe)
+			if(Api.Side != EnumAppSide.Server) return;
+			var slot = byPlayer.Entity.ActiveHandItemSlot;
+			if(slot?.Itemstack?.Collectible.Tool == EnumTool.Hoe)
 			{
-				//TODO: pick result
+				if(recipe == null) return;
+				int index = (blockSel.Position.X - (Pos.X - ((size.X - 2) >> 1))) + (blockSel.Position.Z - (Pos.Z - ((size.Y - 2) >> 1))) * (size.X - 2);
+				if(index < 0 || index >= ((size.X - 2) * (size.Y - 2))) return;
+				int value = layersPacked[index >> 1];
+				int amount = (index & 1) == 0 ? (value & 15) : (value >> 4);
+				if(amount > 0)
+				{
+					layersPacked[index >> 1] = (byte)((index & 1) == 0 ? (value & 240) : (value & 15));
+
+					var output = recipe.Output.ResolvedItemstack.Clone();
+					output.StackSize = amount;
+					Api.World.SpawnItemEntity(output, blockSel.FullPosition);
+
+					MarkDirty(true);
+
+					slot.Itemstack.Collectible.DamageItem(world, byPlayer.Entity, slot);
+				}
 			}
 		}
 
-		public WorldInteraction[] GetInteractionHelp(IWorldAccessor world, BlockSelection selection, IPlayer forPlayer)
+		public WorldInteraction[] GetInteractionHelp(IWorldAccessor world, BlockSelection blockSel, IPlayer forPlayer)
 		{
-			return Array.Empty<WorldInteraction>();//TODO: show help & amount of salt
+			int index = (blockSel.Position.X - (Pos.X - ((size.X - 2) >> 1))) + (blockSel.Position.Z - (Pos.Z - ((size.Y - 2) >> 1))) * (size.X - 2);
+			if(index >= 0 && index < ((size.X - 2) * (size.Y - 2)))
+			{
+				int value = layersPacked[index >> 1];
+				int amount = (index & 1) == 0 ? (value & 15) : (value >> 4);
+				if(amount > 0) return GetPickInteractionHelp();
+			}
+			return Array.Empty<WorldInteraction>();
 		}
 
 		public bool TryAccept(IBlockAccessor blockAccessor, BlockPos pos, BlockFacing face, ref ItemStack liquid)
@@ -388,11 +446,26 @@ namespace FieldsOfSalt.Blocks.Entities
 		{
 		}
 
+		private WorldInteraction[] GetPickInteractionHelp()
+		{
+			if(pickInteractionHelp == null)
+			{
+				pickInteractionHelp = new WorldInteraction[] {
+					new WorldInteraction() {
+						ActionLangCode = "fieldsofsalt:pond-result",
+						MouseButton = EnumMouseButton.Right,
+						Itemstacks = Array.ConvertAll(Api.World.SearchItems(new AssetLocation("hoe-*")), i => new ItemStack(i))
+					}
+				};
+			}
+			return pickInteractionHelp;
+		}
+
 		private void PickLiquid(ItemStack liquid)
 		{
-			if(liquid.StackSize > liquidCapacity)
+			if((liquid.StackSize + currentLiquidStack.StackSize) > liquidCapacity)
 			{
-				liquid.StackSize = liquidCapacity;
+				liquid.StackSize = Math.Max(liquidCapacity - currentLiquidStack.StackSize, 0);
 			}
 			currentLiquidStack.StackSize += liquid.StackSize;
 			markDirtyNext = true;
@@ -661,7 +734,7 @@ namespace FieldsOfSalt.Blocks.Entities
 
 			blockAccessor.SetBlock(mainBlock.Id, fromPos.AddCopy(size.X >> 1, 0, size.Y >> 1), stack);
 
-			blockAccessor.Commit();//TODO: collect connectors to add sink to sources later
+			blockAccessor.Commit();
 		}
 
 		public static bool IterateStructureBlocks(BlockPos fromPos, BlockPos toPos, System.Func<BlockPos, BlockFacing, bool> borderCallback, System.Func<BlockPos, bool> bodyCallback)
