@@ -15,7 +15,7 @@ namespace FieldsOfSalt.Blocks.Entities
 	{
 		private const int MAX_PATH_LENGTH = 128;
 
-		private List<int> channelLine = new List<int>();
+		private int[] channelLine = Array.Empty<int>();
 		private int fluidBlock = 0;
 
 		private int fillLevel = 0;
@@ -41,7 +41,7 @@ namespace FieldsOfSalt.Blocks.Entities
 			{
 				if(TryGetFluidStack(Api, Api.World.GetBlock(fluidBlock), out fluidStack, out fluidProps))
 				{
-					fillLevel = channelLine.Count + 8;
+					fillLevel = channelLine.Length + 8;
 					if(Api.Side == EnumAppSide.Client)
 					{
 						BakeTexture((ICoreClientAPI)Api, fluidProps.Texture, out fluidTexture);
@@ -52,7 +52,7 @@ namespace FieldsOfSalt.Blocks.Entities
 					fluidBlock = 0;
 				}
 			}
-			RegisterMultiblock(0, channelLine.Count);
+			RegisterMultiblock(0, channelLine.Length);
 
 			RegisterGameTickListener(OnTick, 100);
 		}
@@ -60,7 +60,7 @@ namespace FieldsOfSalt.Blocks.Entities
 		public void AddChannel(BlockPos blockPos)
 		{
 			int index = Math.Abs(face.IsAxisWE ? (blockPos.X - Pos.X) : (blockPos.Z - Pos.Z)) - 1;
-			if(index == channelLine.Count)
+			if(index == channelLine.Length)
 			{
 				var tmpPos = Pos.Copy();
 				var dir = face.Opposite;
@@ -68,6 +68,7 @@ namespace FieldsOfSalt.Blocks.Entities
 				Action<BlockPos, BlockFacing, ILiquidSink> addSinkCallback = AddSink;
 				var prevConnectable = index == 0 ? (ILiquidConnectable)Block : (ILiquidConnectable)Api.World.GetBlock(channelLine[index - 1]);
 
+				var expandedLine = new List<int>(channelLine);
 				tmpPos.Add(dir, index);
 				for(int i = index; i < MAX_PATH_LENGTH; i++)
 				{
@@ -77,15 +78,17 @@ namespace FieldsOfSalt.Blocks.Entities
 					var block = accessor.GetBlock(tmpPos);
 					if(block is ILiquidChannel channel && channel.CanConnect(accessor, tmpPos, face) && !mod.GetReferenceToMainBlock(tmpPos))
 					{
-						channelLine.Add(block.Id);
+						expandedLine.Add(block.Id);
 						prevConnectable = channel;
 					}
 					else break;
 				}
-				if(index < channelLine.Count)
+				if(index < expandedLine.Count)
 				{
-					RegisterMultiblock(index, channelLine.Count);
-					for(int i = index; i < channelLine.Count; i++)
+					this.channelLine = expandedLine.ToArray();
+
+					RegisterMultiblock(index, channelLine.Length);
+					for(int i = index; i < channelLine.Length; i++)
 					{
 						((ILiquidChannel)Api.World.GetBlock(channelLine[i])).GetConnectedSinks(accessor, tmpPos, addSinkCallback);
 					}
@@ -97,13 +100,13 @@ namespace FieldsOfSalt.Blocks.Entities
 		public void RemoveChannel(BlockPos blockPos)
 		{
 			int index = Math.Abs(face.IsAxisWE ? (blockPos.X - Pos.X) : (blockPos.Z - Pos.Z)) - 1;
-			if(index >= 0 && index < channelLine.Count)
+			if(index >= 0 && index < channelLine.Length)
 			{
-				int count = channelLine.Count;
-				var lastBlock = Api.World.GetBlock(channelLine[channelLine.Count - 1]);
+				int count = channelLine.Length;
+				var lastBlock = Api.World.GetBlock(channelLine[channelLine.Length - 1]);
 
-				UnregisterMultiblock(index, channelLine.Count, false);
-				channelLine.RemoveRange(index, channelLine.Count - index);
+				UnregisterMultiblock(index, channelLine.Length, false);
+				Array.Resize(ref channelLine, index);
 				MarkDirty(true);
 
 				if(index + 1 < count) TryMoveChannelsToOpposite(lastBlock, count);
@@ -144,6 +147,7 @@ namespace FieldsOfSalt.Blocks.Entities
 			var tmpPos = Pos.Copy();
 			var dir = face.Opposite;
 			var accessor = Api.World.BlockAccessor;
+			var blockList = new List<int>();
 			Action<BlockPos, BlockFacing, ILiquidSink> addSinkCallback = AddSink;
 			var prevConnectable = (ILiquidConnectable)Block;
 			for(int i = 0; i < MAX_PATH_LENGTH; i++)
@@ -154,19 +158,21 @@ namespace FieldsOfSalt.Blocks.Entities
 				var block = accessor.GetBlock(tmpPos);
 				if(block is ILiquidChannel channel && channel.CanConnect(accessor, tmpPos, face) && !mod.GetReferenceToMainBlock(tmpPos))
 				{
-					channelLine.Add(block.Id);
+					blockList.Add(block.Id);
 					prevConnectable = channel;
 				}
 				else break;
 			}
-			RegisterMultiblock(0, channelLine.Count);
-			if(channelLine.Count == 0)
+			channelLine = blockList.ToArray();
+
+			RegisterMultiblock(0, channelLine.Length);
+			if(channelLine.Length == 0)
 			{
 				((BlockSource)Block).GetConnectedSinks(accessor, Pos, addSinkCallback);
 			}
 			UpdateLiquidBlock(Api.World.BlockAccessor);
 
-			for(int i = 0; i < channelLine.Count; i++)
+			for(int i = 0; i < channelLine.Length; i++)
 			{
 				((ILiquidChannel)Api.World.GetBlock(channelLine[i])).GetConnectedSinks(accessor, tmpPos, addSinkCallback);
 			}
@@ -175,14 +181,14 @@ namespace FieldsOfSalt.Blocks.Entities
 
 		public override void OnBlockRemoved()
 		{
-			UnregisterMultiblock(0, channelLine.Count, true);
-			if(channelLine.Count > 0) TryMoveChannelsToOpposite(Api.World.GetBlock(channelLine[channelLine.Count - 1]), channelLine.Count);
+			UnregisterMultiblock(0, channelLine.Length, true);
+			if(channelLine.Length > 0) TryMoveChannelsToOpposite(Api.World.GetBlock(channelLine[channelLine.Length - 1]), channelLine.Length);
 			base.OnBlockRemoved();
 		}
 
 		public override void OnBlockUnloaded()
 		{
-			UnregisterMultiblock(0, channelLine.Count, true);
+			UnregisterMultiblock(0, channelLine.Length, true);
 			base.OnBlockUnloaded();
 		}
 
@@ -191,9 +197,8 @@ namespace FieldsOfSalt.Blocks.Entities
 			base.FromTreeAttributes(tree, worldAccessForResolve);
 			int nextFluidBlock = tree.GetInt("fluidBlock", 0);
 			var newLine = (tree["channelLine"] as IntArrayAttribute)?.value ?? Array.Empty<int>();
-			int prevCount = channelLine.Count;
-			channelLine.Clear();
-			channelLine.AddRange(newLine);
+			int prevCount = channelLine.Length;
+			channelLine = newLine;
 			if(Api == null)
 			{
 				fluidBlock = nextFluidBlock;
@@ -220,25 +225,29 @@ namespace FieldsOfSalt.Blocks.Entities
 
 					ResetLiquidLayer(Api.World.BlockAccessor);
 				}
-				if(prevCount > channelLine.Count) UnregisterMultiblock(channelLine.Count, prevCount, false);
-				else if(prevCount < channelLine.Count) RegisterMultiblock(prevCount, channelLine.Count);
+				if(prevCount > channelLine.Length) UnregisterMultiblock(channelLine.Length, prevCount, false);
+				else if(prevCount < channelLine.Length) RegisterMultiblock(prevCount, channelLine.Length);
 			}
 		}
 
 		public override void ToTreeAttributes(ITreeAttribute tree)
 		{
 			base.ToTreeAttributes(tree);
-			tree["channelLine"] = new IntArrayAttribute(channelLine.ToArray());
+			tree["channelLine"] = new IntArrayAttribute(channelLine);
 			tree.SetInt("fluidBlock", fluidBlock);
 		}
 
 		public override bool OnTesselation(ITerrainMeshPool mesher, ITesselatorAPI tessThreadTesselator)
 		{
+			//Cache in case of multithreading
+			var fluidTexture = this.fluidTexture;
+			var fillLevel = this.fillLevel;
+			var channelLine = this.channelLine;
 			if(fluidTexture != null && fillLevel > 0)
 			{
 				if(tmpMesh == null) tmpMesh = new MeshData(24, 36).WithColorMaps().WithRenderpasses().WithXyzFaces();
 				var accessor = Api.World.GetLockFreeBlockAccessor();
-				var fillLevels = new int[6];
+				var fillLevels = new int[6];//TODO: Span & stackalloc
 				var side = face.IsAxisNS ? BlockFacing.EAST : BlockFacing.NORTH;
 
 				fillLevels[face.Index] = Math.Min(fillLevel, 7);
@@ -263,7 +272,7 @@ namespace FieldsOfSalt.Blocks.Entities
 				var tmpPos = Pos.Copy();
 				var dir = face.Opposite;
 				var offset = new Vec3f();
-				for(int i = 0; i < channelLine.Count; i++)
+				for(int i = 0; i < channelLine.Length; i++)
 				{
 					if(level <= 0) break;
 
@@ -297,14 +306,14 @@ namespace FieldsOfSalt.Blocks.Entities
 		public override void OnLoadCollectibleMappings(IWorldAccessor worldForNewMappings, Dictionary<int, AssetLocation> oldBlockIdMapping, Dictionary<int, AssetLocation> oldItemIdMapping, int schematicSeed)
 		{
 			base.OnLoadCollectibleMappings(worldForNewMappings, oldBlockIdMapping, oldItemIdMapping, schematicSeed);
-			for(int i = 0; i < channelLine.Count; i++)
+			for(int i = 0; i < channelLine.Length; i++)
 			{
 				if(oldBlockIdMapping.TryGetValue(channelLine[i], out var code))
 				{
 					var block = worldForNewMappings.GetBlock(code);
 					if(block == null)
 					{
-						channelLine.RemoveRange(i, channelLine.Count - i);
+						Array.Resize(ref channelLine, i);
 						break;
 					}
 					channelLine[i] = block.Id;
@@ -315,7 +324,7 @@ namespace FieldsOfSalt.Blocks.Entities
 		public override void OnStoreCollectibleMappings(Dictionary<int, AssetLocation> blockIdMapping, Dictionary<int, AssetLocation> itemIdMapping)
 		{
 			base.OnStoreCollectibleMappings(blockIdMapping, itemIdMapping);
-			for(int i = 0; i < channelLine.Count; i++)
+			for(int i = 0; i < channelLine.Length; i++)
 			{
 				blockIdMapping[channelLine[i]] = Api.World.GetBlock(channelLine[i]).Code;
 			}
@@ -357,7 +366,7 @@ namespace FieldsOfSalt.Blocks.Entities
 		{
 			if(fluidBlock > 0)
 			{
-				if(fillLevel < channelLine.Count + 8)
+				if(fillLevel < channelLine.Length + 8)
 				{
 					fillLevel++;
 					if(Api.Side == EnumAppSide.Client) MarkDirty(true);
