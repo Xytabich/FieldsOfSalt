@@ -8,7 +8,7 @@ using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
-using Vintagestory.ServerMods.NoObf;
+using Vintagestory.ServerMods;
 
 namespace FieldsOfSalt.Items
 {
@@ -28,8 +28,11 @@ namespace FieldsOfSalt.Items
 		public override void OnHeldInteractStart(ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel, EntitySelection entitySel, bool firstEvent, ref EnumHandHandling handling)
 		{
 			if(blockSel == null || !firstEvent) return;
-			if(api.Side == EnumAppSide.Server && mainBlock != null && surrogateBlock != null)
+			if(api.Side == EnumAppSide.Server)
 			{
+				EnsureTemplate();
+				if(templateInvalid) return;
+
 				var attr = slot.Itemstack.Attributes;
 				int? x = attr.TryGetInt("startX");
 				int? y = attr.TryGetInt("startY");
@@ -75,56 +78,36 @@ namespace FieldsOfSalt.Items
 
 		private void TryCreateStructure(BlockPos fromPos, BlockPos toPos, IServerPlayer player)
 		{
-			EnsureTemplate();
-			if(templateInvalid) return;
-			if(toPos.X - fromPos.X < 5 || toPos.Z - fromPos.Z < 5)
+			if(toPos.X - fromPos.X < 4 || toPos.Z - fromPos.Z < 4)// to(4)-from(0) = 4
 			{
 				if(player != null) (api as ICoreServerAPI).SendIngameError(player, "fieldsofsalt:structuretoosmall");
 				return;
 			}
+			if((toPos.X - fromPos.X + 1) >= template.MaxSize || (toPos.Z - fromPos.Z + 1) >= template.MaxSize)
+			{
+				if(player != null) (api as ICoreServerAPI).SendIngameError(player, "fieldsofsalt:structuretoobig");
+				return;
+			}
+			if(((toPos.X - fromPos.X) & 1) != 0 || ((toPos.Z - fromPos.Z) & 1) != 0)
+			{
+				if(player != null) (api as ICoreServerAPI).SendIngameError(player, "fieldsofsalt:structureoddsides");
+				return;
+			}
 
 			var accessor = api.World.GetLockFreeBlockAccessor();
-			int fromX = fromPos.X + 1;
-			int toX = toPos.X - 1;
-			int fromZ = fromPos.Z + 1;
-			int toZ = toPos.Z - 1;
-			int x, z;
-
-			var tmpPos = fromPos.Copy();
-			for(x = fromX; x <= toX; x++)
-			{
-				tmpPos.X = x;
-				tmpPos.Y = fromPos.Y;
-				tmpPos.Z = fromPos.Z;
-				if(CheckBorderInvalid(accessor, tmpPos, BlockFacing.NORTH, player)) return;
-				tmpPos.Z = toPos.Z;
-				if(CheckBorderInvalid(accessor, tmpPos, BlockFacing.SOUTH, player)) return;
-			}
-			for(z = fromZ; z <= toZ; z++)
-			{
-				tmpPos.Z = z;
-				tmpPos.Y = fromPos.Y;
-				tmpPos.X = fromPos.X;
-				if(CheckBorderInvalid(accessor, tmpPos, BlockFacing.WEST, player)) return;
-				tmpPos.X = toPos.X;
-				if(CheckBorderInvalid(accessor, tmpPos, BlockFacing.EAST, player)) return;
-			}
-
-			tmpPos.Y = fromPos.Y;
-			for(x = fromX; x <= toX; x++)
-			{
-				tmpPos.X = x;
-				for(z = fromZ; z <= toZ; z++)
-				{
-					tmpPos.Z = z;
+			bool isInvalid = BlockEntityPond.IterateStructureBlocks(fromPos, toPos,
+				(tmpPos, face) => CheckBorderInvalid(accessor, tmpPos, face, player),
+				tmpPos => {
 					var block = accessor.GetBlock(tmpPos);
-					if(!template.Bottom.BlockVariants.Contains(block.Id))
+					if(template.Bottom.BlockVariants.Contains(block.Id))
 					{
-						if(player != null) (api as ICoreServerAPI).SendIngameError(player, "fieldsofsalt:invalidbottomblock");
-						return;
+						return false;
 					}
+					if(player != null) (api as ICoreServerAPI).SendIngameError(player, "fieldsofsalt:invalidbottomblock");
+					return true;
 				}
-			}
+			);
+			if(isInvalid) return;
 
 			BlockEntityPond.CreateStructure(api.World, fromPos, toPos, mainBlock, surrogateBlock);
 		}
@@ -134,16 +117,16 @@ namespace FieldsOfSalt.Items
 			var block = accessor.GetBlock(pos);
 			if(!template.Border.BlockVariants.Contains(block.Id))
 			{
-				if(!template.Connector.BlockVariants.Contains(block.Id) || !(block is ILiquidSinkConnector connector))
+				if(template.Connector.BlockVariants.Contains(block.Id))
 				{
-					if(player != null) (api as ICoreServerAPI).SendIngameError(player, "fieldsofsalt:invalidborderblock");
-					return true;
+					return false;
 				}
-				if(!connector.CanConnect(accessor, pos, facing))
+				if((block is ILiquidSinkConnector connector) && connector.CanConnect(accessor, pos, facing))
 				{
-					if(player != null) (api as ICoreServerAPI).SendIngameError(player, "fieldsofsalt:invalidborderblock");
-					return true;
+					return false;
 				}
+				if(player != null) (api as ICoreServerAPI).SendIngameError(player, "fieldsofsalt:invalidborderblock");
+				return true;
 			}
 			return false;
 		}
@@ -202,11 +185,24 @@ namespace FieldsOfSalt.Items
 			[JsonProperty(Required = Required.Always)]
 			public int MaxSize;
 
-			public class BlockTemplate : RegistryObjectType
+			[JsonObject(MemberSerialization.OptIn)]
+			public class BlockTemplate
 			{
+				[JsonProperty(Required = Required.Always)]
+				public AssetLocation Code;
+
+				[JsonProperty]
+				public RegistryObjectVariantGroup[] VariantGroups;
+
+				[JsonProperty]
+				public AssetLocation[] SkipVariants;
+
+				[JsonProperty]
+				public AssetLocation[] AllowedVariants;
+
 				public HashSet<int> BlockVariants;
 
-				public bool Resolve(IWorldAccessor world, StringBuilder tmpSb, Stack<StateRecord> stateStack, HashSet<string> tmpStates,
+				public bool Resolve(IWorldAccessor world, StringBuilder tmpSb, Stack<StateRecord> stateStack, HashSet<string> tmpStates, HashSet<AssetLocation> tmpCodes,
 					List<string> variantStates, List<VariantGroup> variantGroups, ref char[] tmpChars, ref Dictionary<AssetLocation, StandardWorldProperty> worldProperties)
 				{
 					if(VariantGroups != null && VariantGroups.Length > 0)
@@ -240,7 +236,9 @@ namespace FieldsOfSalt.Items
 					}
 					if(variantGroups.Count > 0)
 					{
-						tmpStates.Clear();
+						tmpSb.Clear();
+						tmpCodes.Clear();
+
 						tmpSb.Append(Code.ToString());
 						var group = variantGroups[0];
 						for(int i = 0; i < group.Size; i++)
@@ -251,7 +249,7 @@ namespace FieldsOfSalt.Items
 						{
 							var record = stateStack.Peek();
 							int index = record.SbIndex + record.SbLength;
-							if(index >= tmpSb.Length)
+							if(index < tmpSb.Length)
 							{
 								tmpSb.Remove(index, tmpSb.Length - index);
 							}
@@ -259,29 +257,43 @@ namespace FieldsOfSalt.Items
 							ClonePartAndReplace(tmpSb, record.SbIndex, record.SbLength, group.Name, variantStates[record.StateIndex], ref tmpChars);
 							if(record.GroupIndex + 1 >= variantGroups.Count)
 							{
-								tmpStates.Add(tmpSb.ToString(index, tmpSb.Length - index));
+								tmpCodes.Add(new AssetLocation(tmpSb.ToString(index, tmpSb.Length - index)));
 								stateStack.Pop();
-								if(record.StateIndex + 1 >= group.Index + group.Size)
+								if(record.StateIndex == group.Index)
 								{
 									while(stateStack.Count > 0)
 									{
-										record = stateStack.Peek();
+										record = stateStack.Pop();
 										group = variantGroups[record.GroupIndex];
-										if(record.StateIndex + 1 >= group.Index + group.Size)
+										if(record.StateIndex + 1 < group.Index + group.Size)
 										{
-											stateStack.Pop();
+											break;
 										}
-										else break;
 									}
 								}
 							}
 							else
 							{
-								group = variantGroups[record.GroupIndex + 1];
+								int groupIndex = record.GroupIndex + 1;
+								group = variantGroups[groupIndex];
 								for(int i = 0; i < group.Size; i++)
 								{
 									index = record.SbIndex + record.SbLength;
-									stateStack.Push(new StateRecord(group.Index + i, record.GroupIndex + 1, index, tmpSb.Length - index));
+									stateStack.Push(new StateRecord(group.Index + i, groupIndex, index, tmpSb.Length - index));
+								}
+							}
+						}
+						if(tmpCodes.Count > 0)
+						{
+							if(SkipVariants != null) tmpCodes.ExceptWith(SkipVariants);
+							if(AllowedVariants != null) tmpCodes.IntersectWith(AllowedVariants);
+							foreach(var code in tmpCodes)
+							{
+								var block = world.GetBlock(code);
+								if(block != null)
+								{
+									if(BlockVariants == null) BlockVariants = new HashSet<int>();
+									BlockVariants.Add(block.Id);
 								}
 							}
 						}
@@ -364,7 +376,7 @@ namespace FieldsOfSalt.Items
 						}
 						else break;
 					}
-					sb.Append(tmpChars, 0, length);
+					if(prevIndex < length) sb.Append(tmpChars, prevIndex, length - prevIndex);
 				}
 			}
 
@@ -373,13 +385,14 @@ namespace FieldsOfSalt.Items
 				var sb = new StringBuilder(1024);
 				var stateStack = new Stack<StateRecord>();
 				var tmpStates = new HashSet<string>();
+				var tmpCodes = new HashSet<AssetLocation>();
 				var variantStates = new List<string>();
 				var variantGroups = new List<VariantGroup>();
 				char[] tmpChars = null;
 				Dictionary<AssetLocation, StandardWorldProperty> worldProperties = null;
-				if(!Border.Resolve(world, sb, stateStack, tmpStates, variantStates, variantGroups, ref tmpChars, ref worldProperties)) return false;
-				if(!Bottom.Resolve(world, sb, stateStack, tmpStates, variantStates, variantGroups, ref tmpChars, ref worldProperties)) return false;
-				return Connector.Resolve(world, sb, stateStack, tmpStates, variantStates, variantGroups, ref tmpChars, ref worldProperties);
+				if(!Border.Resolve(world, sb, stateStack, tmpStates, tmpCodes, variantStates, variantGroups, ref tmpChars, ref worldProperties)) return false;
+				if(!Bottom.Resolve(world, sb, stateStack, tmpStates, tmpCodes, variantStates, variantGroups, ref tmpChars, ref worldProperties)) return false;
+				return Connector.Resolve(world, sb, stateStack, tmpStates, tmpCodes, variantStates, variantGroups, ref tmpChars, ref worldProperties);
 			}
 		}
 

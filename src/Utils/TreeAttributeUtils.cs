@@ -22,7 +22,7 @@ namespace FieldsOfSalt.Utils
 							*valuePtr = *dataPtr;
 							dataPtr++;
 
-							*valuePtr = (ushort)(*dataPtr << 8);
+							*valuePtr |= (ushort)(*dataPtr << 8);
 							dataPtr++;
 
 							valuePtr++;

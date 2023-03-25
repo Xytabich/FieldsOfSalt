@@ -7,17 +7,25 @@
 			{
 				"input": {
 					"code": "game:saltwaterportion",
+					"type": "item",
 					"quantity": 200
 				},
 				"output": {
 					"code": "game:salt",
+					"type": "item",
 					"quantity": 1
-				}
+				},
+				"outputTexture": { "base": "game:block/stone/rock/halite1" },
+				"evaporationTime": 24
 			}
 		]
 	},
 	"shape": { "base": "game:block/basic/cube" },
-	"sideSolidOpaque": {
+	"sideOpaque": {
+		"all": false,
+		"down": true
+	},
+	"sideSolid": {
 		"all": false,
 		"down": true
 	},

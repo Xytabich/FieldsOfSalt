@@ -37,7 +37,7 @@ namespace FieldsOfSalt.Utils
 			ModelCubeUtilExt.AddFace(outMesh, BlockFacing.UP, cuboidCenter, cuboidSize, cuboidUVOffset, cuboidUVSize, -1, ModelCubeUtilExt.EnumShadeMode.Off, vertexFlags);
 		}
 
-		public static void AddLiquidBlockMesh(MeshData outMesh, Vec3f offset, TextureAtlasPosition texPos, int color)
+		public static void AddLiquidBlockMesh(MeshData outMesh, Vec3f offset, TextureAtlasPosition texPos, int color, short renderPass)
 		{
 			if(cuboidUVOffset == null) cuboidUVOffset = new Vec2f();
 			if(cuboidUVSize == null) cuboidUVSize = new Vec2f();
@@ -53,7 +53,7 @@ namespace FieldsOfSalt.Utils
 			cuboidCenter.Z = offset.Z;
 			cuboidSize.X = 1;
 			cuboidSize.Z = 1;
-			ModelCubeUtilExt.AddFace(outMesh, BlockFacing.UP, cuboidCenter, cuboidSize, cuboidUVOffset, cuboidUVSize, -1, ModelCubeUtilExt.EnumShadeMode.Off, vertexFlags);
+			ModelCubeUtilExt.AddFace(outMesh, BlockFacing.UP, cuboidCenter, cuboidSize, cuboidUVOffset, cuboidUVSize, color, ModelCubeUtilExt.EnumShadeMode.Off, vertexFlags, renderPass: renderPass);
 		}
 
 		public static void AddContentMesh(MeshData outMesh, Vec3f offset, float height, TextureAtlasPosition texPos, int color)
@@ -68,8 +68,8 @@ namespace FieldsOfSalt.Utils
 			cuboidUVOffset.Y = texPos.y1;
 			cuboidUVSize.Y = texPos.y2 - texPos.y1;
 			cuboidCenter.X = offset.X;
-			cuboidCenter.Y = offset.X + height * 0.5f;
-			cuboidCenter.Z = offset.X;
+			cuboidCenter.Y = offset.Y + height * 0.5f;
+			cuboidCenter.Z = offset.Z;
 			cuboidSize.X = 1;
 			cuboidSize.Y = height;
 			cuboidSize.Z = 1;

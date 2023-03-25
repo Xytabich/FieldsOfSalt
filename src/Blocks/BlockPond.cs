@@ -74,7 +74,8 @@ namespace FieldsOfSalt.Blocks
 		{
 			if(api.World.BlockAccessor.GetBlockEntity(mainPos) is BlockEntityPond pond)
 			{
-				sourceMesh = ((ICoreClientAPI)api).TesselatorManager.GetDefaultBlockMesh(pond.GetPartBlockAt(partPos));
+				var block = pond.GetPartBlockAt(partPos);
+				if(block != null) sourceMesh = ((ICoreClientAPI)api).TesselatorManager.GetDefaultBlockMesh(block);
 			}
 		}
 
@@ -167,11 +168,12 @@ namespace FieldsOfSalt.Blocks
 							{
 								if(list[i].Output.Resolve(api.World, "evaporation recipe output"))
 								{
+									list[i].Init();
 									recipes.Add(list[i]);
 
 									if(capi != null)
 									{
-										GraphicUtil.BakeTexture(capi, list[i].ResultTexture, "Evaporation recipe", out _);
+										GraphicUtil.BakeTexture(capi, list[i].OutputTexture, "Evaporation recipe", out _);
 									}
 								}
 							}
@@ -180,7 +182,7 @@ namespace FieldsOfSalt.Blocks
 				}
 				catch(Exception e)
 				{
-					api.Logger.Warning("Exception when trying to parse evaporation recipes:\n", e);
+					api.Logger.Error("Exception when trying to parse evaporation recipes:\n{0}", e);
 				}
 				this.recipes = recipes.ToArray();
 			}

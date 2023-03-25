@@ -14,21 +14,29 @@ namespace FieldsOfSalt.Recipes
 		public JsonItemStack Output;
 
 		[JsonProperty(Required = Required.Always)]
-		public CompositeTexture ResultTexture;
+		public CompositeTexture OutputTexture;
 
 		/// <summary>
 		/// How long does it take to complete a recipe at 20C.
 		/// The final time depends on the ambient temperature.
-		/// Formula: Hours=EvaporationTime*(CurrentTemperature+270)/290. Where 270 is an "absolute zero"
+		/// Formula: Hours=EvaporationTime/((CurrentTemperature+270)/290). Where 270 is an "absolute zero"
 		/// </summary>
 		[JsonProperty(Required = Required.Always)]
 		public double EvaporationTime;
 
 		public WaterTightContainableProps InputProps;
 
+		private double CalTempMult;
+
 		public double GetProgress(double hours, float temperature)
 		{
-			return hours * (290.0 / (temperature + 270.0));
+			return hours * (temperature + 270) * CalTempMult;
+		}
+
+		public void Init()
+		{
+			CalTempMult = 1.0 / (EvaporationTime * 290);
+			InputProps = BlockLiquidContainerBase.GetContainableProps(Input.ResolvedItemstack);
 		}
 	}
 }

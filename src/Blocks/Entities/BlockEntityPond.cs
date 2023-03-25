@@ -31,6 +31,8 @@ namespace FieldsOfSalt.Blocks.Entities
 		private double prevCalendarHour = 0;
 		private double layerProgress = 0;
 
+		private List<ConnectorInfo> connectors = new List<ConnectorInfo>();
+
 		// Calculated
 		private int evaporationArea = 0;
 		private int liquidCapacity = 0;
@@ -44,6 +46,7 @@ namespace FieldsOfSalt.Blocks.Entities
 
 		private MeshData mesh = null;
 
+		private bool multiblockRegistered = false;
 		private FieldsOfSaltMod mod;
 
 		public override void Initialize(ICoreAPI api)
@@ -57,6 +60,7 @@ namespace FieldsOfSalt.Blocks.Entities
 				Api.World.BlockAccessor.SetBlock(0, Pos);
 				return;
 			}
+			RegisterMultiblock();
 			var inputToResolve = currentLiquidStack ?? recipe?.Input.ResolvedItemstack;
 			if(inputToResolve != null)
 			{
@@ -64,6 +68,11 @@ namespace FieldsOfSalt.Blocks.Entities
 				{
 					recipe = null;
 					currentLiquidStack = null;
+				}
+				if(api is ICoreClientAPI capi)
+				{
+					var liquidProps = BlockLiquidContainerBase.GetContainableProps(inputToResolve);
+					GraphicUtil.BakeTexture(capi, liquidProps.Texture, "Evaporation pond", out liquidTexture);
 				}
 			}
 			if(recipe != null)
@@ -78,6 +87,11 @@ namespace FieldsOfSalt.Blocks.Entities
 
 		public override void OnBlockPlaced(ItemStack byItemStack = null)
 		{
+			if(Api.Side == EnumAppSide.Client)
+			{
+				base.OnBlockPlaced(byItemStack);
+				return;
+			}
 			try
 			{
 				if(byItemStack == null) throw new InvalidOperationException("Trying to place multiblock without structure info");
@@ -89,32 +103,7 @@ namespace FieldsOfSalt.Blocks.Entities
 				prevCalendarHour = Api.World.Calendar.TotalHours;
 				layerProgress = 0;
 
-				int yStep = size.X;
-				int xLast = size.X - 1;
-				int yLast = size.X * (size.Y - 1);
-				int xPosStart = Pos.X - (size.X >> 1);
-
-				var tmpPos = Pos.Copy();
-				for(int y = 0, zp = (Pos.Z - (size.Y >> 1)); y <= yLast; y += yStep, zp++)
-				{
-					tmpPos.Z = zp;
-					if(y == 0 || y == yLast)// Ignore corners
-					{
-						for(int x = 1, xp = xPosStart; x < xLast; x++, xp++)
-						{
-							tmpPos.X = xp;
-							mod.AddReferenceToMainBlock(tmpPos, Pos);
-						}
-					}
-					else
-					{
-						for(int x = 0, xp = xPosStart; x <= xLast; x++, xp++)
-						{
-							tmpPos.X = xp;
-							mod.AddReferenceToMainBlock(tmpPos, Pos);
-						}
-					}
-				}
+				RegisterMultiblock();
 
 				base.OnBlockPlaced(byItemStack);
 			}
@@ -123,6 +112,18 @@ namespace FieldsOfSalt.Blocks.Entities
 				Api.Logger.Warning("Exception when trying to read multiblock structure, placement will be canceled\n{0}", e);
 				Api.World.BlockAccessor.SetBlock(0, Pos);
 			}
+		}
+
+		public override void OnBlockRemoved()
+		{
+			base.OnBlockRemoved();
+			UnregisterMultiblock();
+		}
+
+		public override void OnBlockUnloaded()
+		{
+			base.OnBlockUnloaded();
+			UnregisterMultiblock();
 		}
 
 		public override void ToTreeAttributes(ITreeAttribute tree)
@@ -178,6 +179,7 @@ namespace FieldsOfSalt.Blocks.Entities
 			}
 			else
 			{
+				RegisterMultiblock();
 				var inputToResolve = currentLiquidStack ?? recipe?.Input.ResolvedItemstack;
 				if(inputToResolve != null)
 				{
@@ -185,6 +187,11 @@ namespace FieldsOfSalt.Blocks.Entities
 					{
 						recipe = null;
 						currentLiquidStack = null;
+					}
+					if(Api is ICoreClientAPI capi)
+					{
+						var liquidProps = BlockLiquidContainerBase.GetContainableProps(inputToResolve);
+						GraphicUtil.BakeTexture(capi, liquidProps.Texture, "Evaporation pond", out liquidTexture);
 					}
 				}
 				if(recipe != null)
@@ -196,8 +203,11 @@ namespace FieldsOfSalt.Blocks.Entities
 
 		public override bool OnTesselation(ITerrainMeshPool mesher, ITesselatorAPI tessThreadTesselator)
 		{
+			var capi = (ICoreClientAPI)Api;
+
 			var recipe = this.recipe;
-			if(recipe != null)
+			var layersPacked = this.layersPacked;
+			if(recipe != null && layersPacked != null)
 			{
 				if(mesh == null) mesh = new MeshData(24, 36).WithColorMaps().WithRenderpasses().WithXyzFaces();
 				int sx = size.X - 2;
@@ -205,11 +215,10 @@ namespace FieldsOfSalt.Blocks.Entities
 				int cx = sx >> 1;
 				int cz = sz >> 1;
 
-				var capi = (ICoreClientAPI)Api;
 				var liquidTexture = this.liquidTexture ?? capi.BlockTextureAtlas.UnknownTexturePosition;
 				int liquidColor = ColorUtil.ColorFromRgba(255, 255, 255, 127);
 
-				var bakedCT = recipe.ResultTexture?.Baked;
+				var bakedCT = recipe.OutputTexture?.Baked;
 				var contentTexture = bakedCT == null ? capi.BlockTextureAtlas.UnknownTexturePosition : capi.BlockTextureAtlas.Positions[bakedCT.TextureSubId];
 				int contentColor = -1;
 
@@ -225,11 +234,11 @@ namespace FieldsOfSalt.Blocks.Entities
 						offset.Z = (z - cz) + 0.5f;
 						int i = oz + x;
 						const float m = 1f / 15f;
-						float level = ((i & 1) == 0 ? layersPacked[i >> 1] : (layersPacked[i >> 1] >> 4)) * m;
+						float level = ((i & 1) == 0 ? (layersPacked[i >> 1] & 15) : (layersPacked[i >> 1] >> 4)) * m;
 						if(level < liquidLevel)
 						{
 							offset.Y = 0.5f + liquidLevel * 0.5f;
-							GraphicUtil.AddLiquidBlockMesh(mesh, offset, liquidTexture, liquidColor);
+							GraphicUtil.AddLiquidBlockMesh(mesh, offset, liquidTexture, liquidColor, (short)EnumChunkRenderPass.Transparent);
 						}
 						if(level > 0)
 						{
@@ -243,7 +252,9 @@ namespace FieldsOfSalt.Blocks.Entities
 					mesher.AddMeshData(mesh);
 				}
 			}
-			return base.OnTesselation(mesher, tessThreadTesselator);
+			var block = GetPartBlockAt(Pos);
+			if(block != null) mesher.AddMeshData(capi.TesselatorManager.GetDefaultBlockMesh(block));
+			return true;
 		}
 
 		public override void OnLoadCollectibleMappings(IWorldAccessor worldForNewMappings, Dictionary<int, AssetLocation> oldBlockIdMapping, Dictionary<int, AssetLocation> oldItemIdMapping, int schematicSeed)
@@ -322,8 +333,10 @@ namespace FieldsOfSalt.Blocks.Entities
 		public Block GetPartBlockAt(BlockPos partPos)
 		{
 			int index = (partPos.X - (Pos.X - (size.X >> 1))) + (partPos.Z - (Pos.Z - (size.Y >> 1))) * size.X;
-			if(index < 0 || index >= grid.Length) return null;
-			return Api.World.GetBlock(grid[index]);
+			if(index < 0 || index >= grid.Length || grid[index] == ushort.MaxValue) return null;
+			var id = blockIds[grid[index]];
+			if(id == 0) return null;
+			return Api.World.GetBlock(id);
 		}
 
 		public void OnBlockInteract(IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel)
@@ -341,7 +354,7 @@ namespace FieldsOfSalt.Blocks.Entities
 
 		public bool TryAccept(IBlockAccessor blockAccessor, BlockPos pos, BlockFacing face, ref ItemStack liquid)
 		{
-			if(liquidCapacity <= 0) return false;
+			if(Api.Side != EnumAppSide.Server) return false;
 			if(currentLiquidStack == null)
 			{
 				if(((BlockPond)Block).TryGetRecipe(blockAccessor, pos, liquid, out var evaporationRecipe) &&
@@ -354,9 +367,10 @@ namespace FieldsOfSalt.Blocks.Entities
 						layerProgress = 0;
 						prevCalendarHour = Api.World.Calendar.TotalHours;
 						evaporationArea = (size.X - 2) * (size.Y - 2);
-						CalculateLiquidCapacity(0);
 					}
 					recipe = evaporationRecipe;
+					CalculateLiquidCapacity(0);
+
 					currentLiquidStack = liquid.GetEmptyClone();
 					PickLiquid(liquid);
 					return true;
@@ -392,7 +406,7 @@ namespace FieldsOfSalt.Blocks.Entities
 			{
 				var temperature = Api.World.BlockAccessor.GetClimateAt(Pos, EnumGetClimateMode.ForSuppliedDate_TemperatureOnly,
 					prevCalendarHour / Api.World.Calendar.HoursPerDay).Temperature;
-				var timeProgress = recipe.GetProgress(prevCalendarHour - Api.World.Calendar.TotalHours, temperature);
+				var timeProgress = recipe.GetProgress(Api.World.Calendar.TotalHours - prevCalendarHour, temperature);
 
 				double unitsInLayer = recipe.Input.StackSize * evaporationArea;
 				int prevStepEvaporatedTotal = (int)(layerProgress * unitsInLayer);
@@ -409,7 +423,7 @@ namespace FieldsOfSalt.Blocks.Entities
 					{
 						int addLayers = (int)layerProgress;
 						layerProgress -= addLayers;
-						int addOutputUnitsAmount = addLayers * recipe.Output.StackSize;
+						int addOutputUnitsAmount = addLayers * recipe.Output.StackSize * evaporationArea;
 
 						int count = ((size.X - 2) * (size.Y - 2)) >> 1;
 						int usedLayers = 0;
@@ -418,7 +432,7 @@ namespace FieldsOfSalt.Blocks.Entities
 							uint value = layersPacked[i];
 							uint newValue = 0;
 
-							int size = (int)(value & 0b00001111);
+							int size = (int)(value & 15);
 							if(size < 15)
 							{
 								size += addLayers;
@@ -480,7 +494,7 @@ namespace FieldsOfSalt.Blocks.Entities
 							}
 							else
 							{
-								layersPacked[count] = (byte)size;
+								layersPacked[count] = (byte)GameMath.Clamp(size, 0, 15);
 								usedLayers += size;
 							}
 						}
@@ -506,7 +520,7 @@ namespace FieldsOfSalt.Blocks.Entities
 			{
 				uint value = layersPacked[i];
 
-				int size = (int)(value & 0b00001111);
+				int size = (int)(value & 15);
 				usedLayers += size;
 				if(size == 15) evaporationArea--;
 
@@ -528,76 +542,113 @@ namespace FieldsOfSalt.Blocks.Entities
 			liquidCapacity = (int)Math.Ceiling(volumeForLiquid * (double)recipe.InputProps.ItemsPerLitre);
 		}
 
+		private void RegisterMultiblock()
+		{
+			if(size == null) return;
+			if(multiblockRegistered) return;
+			multiblockRegistered = true;
+
+			var fromPos = new BlockPos(Pos.X - (size.X >> 1), Pos.Y, Pos.Z - (size.Y >> 1));
+			var toPos = fromPos.AddCopy(size.X - 1, 0, size.Y - 1);
+
+			var accessor = Api.World.BlockAccessor;
+			bool RegisterBlock(BlockPos tmpPos)
+			{
+				mod.AddReferenceToMainBlock(tmpPos, Pos);
+				accessor.MarkBlockDirty(tmpPos);
+				return false;
+			}
+
+			connectors.Clear();
+			bool RegisterBorderBlock(BlockPos tmpPos, BlockFacing face)
+			{
+				if(accessor.GetBlock(tmpPos) is ILiquidSinkConnector connector && connector.CanConnect(accessor, tmpPos, face))
+				{
+					connectors.Add(new ConnectorInfo(tmpPos.Copy(), face));
+					var channelPos = tmpPos.AddCopy(face);
+					if(accessor.GetBlock(channelPos) is ILiquidChannel channel)
+					{
+						channel.AddSink(accessor, channelPos, face.Opposite, this);
+					}
+				}
+				mod.AddReferenceToMainBlock(tmpPos, Pos);
+				accessor.MarkBlockDirty(tmpPos);
+				return false;
+			}
+			IterateStructureBlocks(fromPos, toPos, RegisterBorderBlock, RegisterBlock);
+		}
+
+		private void UnregisterMultiblock()
+		{
+			if(size == null) return;
+			if(!multiblockRegistered) return;
+			multiblockRegistered = false;
+
+			var fromPos = new BlockPos(Pos.X - (size.X >> 1), Pos.Y, Pos.Z - (size.Y >> 1));
+			var toPos = fromPos.AddCopy(size.X - 1, 0, size.Y - 1);
+
+			bool UnregisterBlock(BlockPos tmpPos)
+			{
+				mod.RemoveReferenceToMainBlock(tmpPos, Pos);
+				return false;
+			}
+			bool UnregisterBorderBlock(BlockPos tmpPos, BlockFacing face)
+			{
+				mod.RemoveReferenceToMainBlock(tmpPos, Pos);
+				return false;
+			}
+			IterateStructureBlocks(fromPos, toPos, UnregisterBorderBlock, UnregisterBlock);
+
+			var channelPos = new BlockPos();
+			var accessor = Api.World.BlockAccessor;
+			foreach(var connector in connectors)
+			{
+				channelPos.Set(connector.pos);
+				channelPos.Add(connector.face);
+				if(accessor.GetBlock(channelPos) is ILiquidChannel channel)
+				{
+					channel.RemoveSink(accessor, channelPos, connector.face.Opposite, this);
+				}
+			}
+		}
+
 		/// <summary>
 		/// Creates a structure in the specified area.
 		/// The structure must be validated beforehand.
 		/// </summary>
 		public static void CreateStructure(IWorldAccessor world, BlockPos fromPos, BlockPos toPos, ItemStack mainBlock, ItemStack surrogateBlock)
 		{
-			var size = new Vec2i(toPos.X - fromPos.X, toPos.Z - fromPos.Z);
+			var size = new Vec2i(toPos.X - fromPos.X + 1, toPos.Z - fromPos.Z + 1);
 
 			var blockId2index = new Dictionary<int, int>();
 			var grid = new ushort[size.X * size.Y];
 
-			int yStep = size.X;
-			int xLast = size.X - 1;
-			int yLast = size.X * (size.Y - 1);
+			grid[0] = ushort.MaxValue;
+			grid[size.X - 1] = ushort.MaxValue;
+			grid[size.X * (size.Y - 1)] = ushort.MaxValue;
+			grid[size.X * size.Y - 1] = ushort.MaxValue;
 
-			ushort GetBlockIndex(int id)
+			var blockAccessor = world.GetBlockAccessorBulkUpdate(true, false);
+			bool CheckBlock(BlockPos pos, int gridIndex)
 			{
-				if(!blockId2index.TryGetValue(id, out var index))
+				var block = blockAccessor.GetBlock(pos);
+				if(block is IMultiblockPartBlock)
 				{
-					index = blockId2index.Count;
-					blockId2index[id] = index;
-				}
-				return (ushort)index;
-			}
-
-			var blockAccessor = world.GetBlockAccessorBulkUpdate(false, false);
-
-			var tmpPos = fromPos.Copy();
-			for(int y = 0, zp = fromPos.Z; y <= yLast; y += yStep, zp++)//TODO: collect connectors to add sink to sources later
-			{
-				tmpPos.Z = zp;
-				if(y == 0 || y == yLast)// Ignore corners
-				{
-					grid[y] = ushort.MaxValue;
-					grid[y + xLast] = ushort.MaxValue;
-					for(int x = 1, xp = fromPos.X + 1; x < xLast; x++, xp++)
-					{
-						tmpPos.X = xp;
-
-						var block = blockAccessor.GetBlock(tmpPos);
-						if(block is IMultiblockPartBlock)
-						{
-							grid[y + x] = ushort.MaxValue;
-						}
-						else
-						{
-							grid[y + x] = GetBlockIndex(block.Id);
-							blockAccessor.SetBlock(surrogateBlock.Id, tmpPos, surrogateBlock);
-						}
-					}
+					grid[gridIndex] = ushort.MaxValue;
 				}
 				else
 				{
-					for(int x = 0, xp = fromPos.X; x <= xLast; x++, xp++)
+					if(!blockId2index.TryGetValue(block.Id, out var blockIndex))
 					{
-						tmpPos.X = xp;
-
-						var block = blockAccessor.GetBlock(tmpPos);
-						if(block is IMultiblockPartBlock)
-						{
-							grid[y + x] = ushort.MaxValue;
-						}
-						else
-						{
-							grid[y + x] = GetBlockIndex(block.Id);
-							blockAccessor.SetBlock(surrogateBlock.Id, tmpPos, surrogateBlock);
-						}
+						blockIndex = blockId2index.Count;
+						blockId2index[block.Id] = blockIndex;
 					}
+					grid[gridIndex] = (ushort)blockIndex;
+					blockAccessor.SetBlock(surrogateBlock.Id, pos, surrogateBlock);
 				}
+				return false;
 			}
+			IterateStructureBlocks(fromPos, toPos, CheckBlock, CheckBlock);
 
 			var stack = mainBlock.Clone();
 			stack.Attributes.SetInt(SIZE_X_ATTR, size.X);
@@ -608,11 +659,119 @@ namespace FieldsOfSalt.Blocks.Entities
 			foreach(var pair in blockId2index) blockIds[pair.Value] = pair.Key;
 			stack.Attributes[BLOCK_IDS_ATTR] = new IntArrayAttribute(blockIds);
 
-			tmpPos.X = size.X >> 1;
-			tmpPos.Z = size.Y >> 1;
-			blockAccessor.SetBlock(mainBlock.Id, tmpPos, stack);
+			blockAccessor.SetBlock(mainBlock.Id, fromPos.AddCopy(size.X >> 1, 0, size.Y >> 1), stack);
 
-			blockAccessor.Commit();
+			blockAccessor.Commit();//TODO: collect connectors to add sink to sources later
+		}
+
+		public static bool IterateStructureBlocks(BlockPos fromPos, BlockPos toPos, System.Func<BlockPos, BlockFacing, bool> borderCallback, System.Func<BlockPos, bool> bodyCallback)
+		{
+			int fromX = fromPos.X + 1;
+			int toX = toPos.X - 1;
+			int fromZ = fromPos.Z + 1;
+			int toZ = toPos.Z - 1;
+			int x, z;
+
+			var tmpPos = fromPos.Copy();
+			if(borderCallback != null)
+			{
+				for(x = fromX; x <= toX; x++)
+				{
+					tmpPos.X = x;
+					tmpPos.Y = fromPos.Y;
+					tmpPos.Z = fromPos.Z;
+					if(borderCallback(tmpPos, BlockFacing.NORTH)) return true;
+					tmpPos.Z = toPos.Z;
+					if(borderCallback(tmpPos, BlockFacing.SOUTH)) return true;
+				}
+				for(z = fromZ; z <= toZ; z++)
+				{
+					tmpPos.Z = z;
+					tmpPos.Y = fromPos.Y;
+					tmpPos.X = fromPos.X;
+					if(borderCallback(tmpPos, BlockFacing.WEST)) return true;
+					tmpPos.X = toPos.X;
+					if(borderCallback(tmpPos, BlockFacing.EAST)) return true;
+				}
+			}
+			if(bodyCallback != null)
+			{
+				tmpPos.Y = fromPos.Y;
+				for(x = fromX; x <= toX; x++)
+				{
+					tmpPos.X = x;
+					for(z = fromZ; z <= toZ; z++)
+					{
+						tmpPos.Z = z;
+						if(bodyCallback(tmpPos)) return true;
+					}
+				}
+			}
+			return false;
+		}
+
+		public delegate bool StructureBlockPosDelegate(BlockPos pos, int gridIndex);
+		public static bool IterateStructureBlocks(BlockPos fromPos, BlockPos toPos, StructureBlockPosDelegate borderCallback, StructureBlockPosDelegate bodyCallback)
+		{
+			int sizeX = toPos.X - fromPos.X + 1;
+			int sizeZ = toPos.Z - fromPos.Z + 1;
+			int lastRow = sizeX * (sizeZ - 1);
+			int lastX = sizeX - 1;
+
+			int fromX = fromPos.X + 1;
+			int toX = toPos.X - 1;
+			int fromZ = fromPos.Z + 1;
+			int toZ = toPos.Z - 1;
+			int x, z, gx, gz;
+
+			var tmpPos = fromPos.Copy();
+			if(borderCallback != null)
+			{
+				for(x = fromX, gx = 1; x <= toX; x++, gx++)
+				{
+					tmpPos.X = x;
+					tmpPos.Y = fromPos.Y;
+					tmpPos.Z = fromPos.Z;
+					if(borderCallback(tmpPos, gx)) return true;
+					tmpPos.Z = toPos.Z;
+					if(borderCallback(tmpPos, gx + lastRow)) return true;
+				}
+				for(z = fromZ, gz = sizeX; z <= toZ; z++, gz += sizeX)
+				{
+					tmpPos.Z = z;
+					tmpPos.Y = fromPos.Y;
+					tmpPos.X = fromPos.X;
+					if(borderCallback(tmpPos, gz)) return true;
+					tmpPos.X = toPos.X;
+					if(borderCallback(tmpPos, gz + lastX)) return true;
+				}
+			}
+			if(bodyCallback != null)
+			{
+				tmpPos.Y = fromPos.Y;
+				for(z = fromZ, gz = sizeX; z <= toZ; z++, gz += sizeX)
+				{
+					tmpPos.Z = z;
+					for(x = fromX, gx = 1; x <= toX; x++, gx++)
+					{
+						tmpPos.X = x;
+						if(bodyCallback(tmpPos, gz + gx)) return true;
+					}
+				}
+			}
+			return false;
+		}
+
+		private readonly struct ConnectorInfo
+		{
+			public readonly BlockPos pos;
+			public readonly BlockFacing face;
+
+			public ConnectorInfo(BlockPos pos, BlockFacing face)
+			{
+				this.pos = pos;
+				this.face = face;
+			}
 		}
 	}
 }

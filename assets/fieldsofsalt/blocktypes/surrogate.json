@@ -10,5 +10,13 @@
 		"*-render": "fieldsofsalt:rendersurrogate"
 	},
 	"shape": { "base": "game:block/basic/cube" },
-	"drops": []
+	"drops": [],
+	"sideOpaque": {
+		"all": false,
+		"down": true
+	},
+	"sideSolid": {
+		"all": false,
+		"down": true
+	}
 }

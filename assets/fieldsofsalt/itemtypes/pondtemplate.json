@@ -47,5 +47,9 @@
 				"code": "surrogate-render"
 			}
 		}
+	},
+	"creativeinventory": {
+		"general": [ "*" ],
+		"items": [ "*" ]
 	}
 }
