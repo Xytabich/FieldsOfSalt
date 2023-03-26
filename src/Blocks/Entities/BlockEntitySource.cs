@@ -262,16 +262,18 @@ namespace FieldsOfSalt.Blocks.Entities
 				fillLevels[face.Opposite.Index] = Math.Min(level, 7);
 				fillLevels[side.Index] = Math.Min(level, 7);
 				fillLevels[side.Opposite.Index] = Math.Min(level, 7);
+
 				tmpMesh.Clear();
 				((BlockSource)Block).GenLiquidMesh(accessor, Pos, tmpMesh, fillLevels);
 				if(tmpMesh.VerticesCount > 0)
 				{
-					for(int j = 0; j < tmpMesh.VerticesCount; j++)
-					{
-						tmpMesh.Rgba[j * 4] = 127;
-					}
+					//for(int j = 0; j < tmpMesh.VerticesCount; j++)//TODO: color doesn't work?
+					//{
+					//	tmpMesh.Rgba[j * 4] = 127;
+					//}
 					tmpMesh.SetTexPos(fluidTexture);
 					tmpMesh.RenderPassesAndExtraBits.Fill((short)EnumChunkRenderPass.Transparent);
+					tmpMesh.Flags.Fill(fluidProps.GlowLevel);
 					mesher.AddMeshData(tmpMesh);
 				}
 
@@ -293,17 +295,19 @@ namespace FieldsOfSalt.Blocks.Entities
 						fillLevels[face.Opposite.Index] = Math.Min(level, 7);
 						fillLevels[side.Index] = Math.Min(level, 7);
 						fillLevels[side.Opposite.Index] = Math.Min(level, 7);
+
 						tmpMesh.Clear();
 						(Api.World.GetBlock(channelLine[i]) as ILiquidChannel)?.GenLiquidMesh(accessor, tmpPos, tmpMesh, fillLevels);
 						if(tmpMesh.VerticesCount > 0)
 						{
-							for(int j = 0; j < tmpMesh.VerticesCount; j++)
-							{
-								tmpMesh.Rgba[j * 4] = 127;
-							}
+							//for(int j = 0; j < tmpMesh.VerticesCount; j++)//TODO: color doesn't work?
+							//{
+							//	tmpMesh.Rgba[j * 4] = 127;
+							//}
 							tmpMesh.Translate(offset);
 							tmpMesh.SetTexPos(fluidTexture);
 							tmpMesh.RenderPassesAndExtraBits.Fill((short)EnumChunkRenderPass.Transparent);
+							tmpMesh.Flags.Fill(fluidProps.GlowLevel);
 							mesher.AddMeshData(tmpMesh);
 						}
 					}
@@ -382,7 +386,7 @@ namespace FieldsOfSalt.Blocks.Entities
 				}
 				var accessor = Api.World.BlockAccessor;
 				var tmpPos = new BlockPos();
-				int stackSize = (int)Math.Ceiling(fluidProps.ItemsPerLitre * 0.01);
+				int stackSize = (int)Math.Ceiling(fluidProps.ItemsPerLitre);
 				foreach(var pair in sinks)
 				{
 					var pos = pair.Key;

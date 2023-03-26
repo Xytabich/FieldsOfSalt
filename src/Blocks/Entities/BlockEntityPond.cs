@@ -41,6 +41,7 @@ namespace FieldsOfSalt.Blocks.Entities
 		private bool removeInvalidStructure = false;
 
 		private TextureAtlasPosition liquidTexture = null;
+		private WaterTightContainableProps liquidProps = null;
 		private ItemStack currentLiquidStack = null;
 		private EvaporationRecipe recipe = null;
 
@@ -73,7 +74,7 @@ namespace FieldsOfSalt.Blocks.Entities
 				}
 				if(api is ICoreClientAPI capi)
 				{
-					var liquidProps = BlockLiquidContainerBase.GetContainableProps(inputToResolve);
+					liquidProps = BlockLiquidContainerBase.GetContainableProps(inputToResolve);
 					GraphicUtil.BakeTexture(capi, liquidProps.Texture, "Evaporation pond", out liquidTexture);
 				}
 			}
@@ -192,7 +193,7 @@ namespace FieldsOfSalt.Blocks.Entities
 					}
 					if(Api is ICoreClientAPI capi)
 					{
-						var liquidProps = BlockLiquidContainerBase.GetContainableProps(inputToResolve);
+						liquidProps = BlockLiquidContainerBase.GetContainableProps(inputToResolve);
 						GraphicUtil.BakeTexture(capi, liquidProps.Texture, "Evaporation pond", out liquidTexture);
 					}
 				}
@@ -218,11 +219,13 @@ namespace FieldsOfSalt.Blocks.Entities
 				int cz = sz >> 1;
 
 				var liquidTexture = this.liquidTexture ?? capi.BlockTextureAtlas.UnknownTexturePosition;
-				int liquidColor = ColorUtil.ColorFromRgba(255, 255, 255, 127);
+				int liquidColor = -1;//TODO: color doesn't work?
+				int liquidGlow = liquidProps.GlowLevel;
 
 				var bakedCT = recipe.OutputTexture?.Baked;
 				var contentTexture = bakedCT == null ? capi.BlockTextureAtlas.UnknownTexturePosition : capi.BlockTextureAtlas.Positions[bakedCT.TextureSubId];
-				int contentColor = -1;
+				int contentColor = -1;//TODO: color doesn't work?
+				int contentGlow = 0;
 
 				mesh.Clear();
 				var offset = new Vec3f();
@@ -240,12 +243,12 @@ namespace FieldsOfSalt.Blocks.Entities
 						if(liquidLevel > level)
 						{
 							offset.Y = 0.5f + liquidLevel * 0.5f;
-							GraphicUtil.AddLiquidBlockMesh(mesh, offset, liquidTexture, liquidColor, (short)EnumChunkRenderPass.Transparent);
+							GraphicUtil.AddLiquidBlockMesh(mesh, offset, liquidTexture, liquidColor, (short)EnumChunkRenderPass.Transparent, liquidGlow);
 						}
 						if(level > 0)
 						{
 							offset.Y = 0.5f;
-							GraphicUtil.AddContentMesh(mesh, offset, level * 0.5f, contentTexture, contentColor);
+							GraphicUtil.AddContentMesh(mesh, offset, level * 0.5f, contentTexture, contentColor, contentGlow);
 						}
 					}
 				}

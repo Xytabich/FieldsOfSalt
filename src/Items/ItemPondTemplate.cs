@@ -8,6 +8,7 @@ using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
+using Vintagestory.API.Util;
 using Vintagestory.ServerMods;
 
 namespace FieldsOfSalt.Items
@@ -202,8 +203,7 @@ namespace FieldsOfSalt.Items
 
 				public HashSet<int> BlockVariants;
 
-				public bool Resolve(IWorldAccessor world, StringBuilder tmpSb, Stack<StateRecord> stateStack, HashSet<string> tmpStates, HashSet<AssetLocation> tmpCodes,
-					List<string> variantStates, List<VariantGroup> variantGroups, ref char[] tmpChars, ref Dictionary<AssetLocation, StandardWorldProperty> worldProperties)
+				public bool Resolve(IWorldAccessor world, StringBuilder tmpSb, Stack<StateRecord> stateStack, HashSet<string> tmpStates, HashSet<AssetLocation> tmpCodes1, HashSet<AssetLocation> tmpCodes2, List<string> variantStates, List<VariantGroup> variantGroups, ref char[] tmpChars, ref Dictionary<AssetLocation, StandardWorldProperty> worldProperties)
 				{
 					if(VariantGroups != null && VariantGroups.Length > 0)
 					{
@@ -237,7 +237,6 @@ namespace FieldsOfSalt.Items
 					if(variantGroups.Count > 0)
 					{
 						tmpSb.Clear();
-						tmpCodes.Clear();
 
 						tmpSb.Append(Code.ToString());
 						var group = variantGroups[0];
@@ -245,6 +244,8 @@ namespace FieldsOfSalt.Items
 						{
 							stateStack.Push(new StateRecord(group.Index + i, 0, 0, tmpSb.Length));
 						}
+						var codes = tmpCodes1;
+						codes.Clear();
 						while(stateStack.Count > 0)
 						{
 							var record = stateStack.Peek();
@@ -257,7 +258,7 @@ namespace FieldsOfSalt.Items
 							ClonePartAndReplace(tmpSb, record.SbIndex, record.SbLength, group.Name, variantStates[record.StateIndex], ref tmpChars);
 							if(record.GroupIndex + 1 >= variantGroups.Count)
 							{
-								tmpCodes.Add(new AssetLocation(tmpSb.ToString(index, tmpSb.Length - index)));
+								codes.Add(new AssetLocation(tmpSb.ToString(index, tmpSb.Length - index)));
 								stateStack.Pop();
 								if(record.StateIndex == group.Index)
 								{
@@ -283,11 +284,47 @@ namespace FieldsOfSalt.Items
 								}
 							}
 						}
-						if(tmpCodes.Count > 0)
+						if(tmpCodes1.Count > 0)
 						{
-							if(SkipVariants != null) tmpCodes.ExceptWith(SkipVariants);
-							if(AllowedVariants != null) tmpCodes.IntersectWith(AllowedVariants);
-							foreach(var code in tmpCodes)
+							var tmpCodes = tmpCodes2;
+							if(AllowedVariants != null)
+							{
+								tmpCodes.Clear();
+								foreach(var code in codes)
+								{
+									foreach(var variant in AllowedVariants)
+									{
+										if(WildcardUtil.Match(variant, code))
+										{
+											tmpCodes.Add(code);
+											break;
+										}
+									}
+								}
+								var tmp = tmpCodes;
+								tmpCodes = codes;
+								codes = tmp;
+							}
+							if(SkipVariants != null)
+							{
+								tmpCodes.Clear();
+								foreach(var code in codes)
+								{
+									bool skip = false;
+									foreach(var variant in SkipVariants)
+									{
+										if(WildcardUtil.Match(variant, code))
+										{
+											skip = true;
+											break;
+										}
+									}
+									if(skip) continue;
+									tmpCodes.Add(code);
+								}
+								codes = tmpCodes;
+							}
+							foreach(var code in codes)
 							{
 								var block = world.GetBlock(code);
 								if(block != null)
@@ -385,14 +422,15 @@ namespace FieldsOfSalt.Items
 				var sb = new StringBuilder(1024);
 				var stateStack = new Stack<StateRecord>();
 				var tmpStates = new HashSet<string>();
-				var tmpCodes = new HashSet<AssetLocation>();
+				var tmpCodes1 = new HashSet<AssetLocation>();
+				var tmpCodes2 = new HashSet<AssetLocation>();
 				var variantStates = new List<string>();
 				var variantGroups = new List<VariantGroup>();
 				char[] tmpChars = null;
 				Dictionary<AssetLocation, StandardWorldProperty> worldProperties = null;
-				if(!Border.Resolve(world, sb, stateStack, tmpStates, tmpCodes, variantStates, variantGroups, ref tmpChars, ref worldProperties)) return false;
-				if(!Bottom.Resolve(world, sb, stateStack, tmpStates, tmpCodes, variantStates, variantGroups, ref tmpChars, ref worldProperties)) return false;
-				return Connector.Resolve(world, sb, stateStack, tmpStates, tmpCodes, variantStates, variantGroups, ref tmpChars, ref worldProperties);
+				if(!Border.Resolve(world, sb, stateStack, tmpStates, tmpCodes1, tmpCodes2, variantStates, variantGroups, ref tmpChars, ref worldProperties)) return false;
+				if(!Bottom.Resolve(world, sb, stateStack, tmpStates, tmpCodes1, tmpCodes2, variantStates, variantGroups, ref tmpChars, ref worldProperties)) return false;
+				return Connector.Resolve(world, sb, stateStack, tmpStates, tmpCodes1, tmpCodes2, variantStates, variantGroups, ref tmpChars, ref worldProperties);
 			}
 		}
 
