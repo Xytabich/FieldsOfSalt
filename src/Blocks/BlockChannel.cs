@@ -105,7 +105,7 @@ namespace FieldsOfSalt.Blocks
 			{
 				if((connectedSides & 1) != 0)
 				{
-					GraphicUtil.AddLiquidMesh(outMesh, fillAreas[i]);
+					GraphicUtil.AddLiquidMesh(outMesh, fillAreas[i], 0);
 				}
 				connectedSides >>= 1;
 			}

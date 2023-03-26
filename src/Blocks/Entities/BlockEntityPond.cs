@@ -100,8 +100,8 @@ namespace FieldsOfSalt.Blocks.Entities
 				if(byItemStack == null) throw new InvalidOperationException("Trying to place multiblock without structure info");
 
 				size = new Vec2i(byItemStack.Attributes.GetInt(SIZE_X_ATTR, 5), byItemStack.Attributes.GetInt(SIZE_Y_ATTR, 5));
-				grid = byItemStack.Attributes.ReadUShortArray(GRID_ATTR);
 				blockIds = ((IntArrayAttribute)byItemStack.Attributes[BLOCK_IDS_ATTR]).value;
+				grid = byItemStack.Attributes.ReadPackedUShortArray(GRID_ATTR, (ushort)blockIds.Length, size.X * size.Y);
 				layersPacked = new byte[(((size.X - 2) * (size.Y - 2)) >> 1) + 1];
 				prevCalendarHour = Api.World.Calendar.TotalHours;
 				layerProgress = 0;
@@ -134,7 +134,7 @@ namespace FieldsOfSalt.Blocks.Entities
 			base.ToTreeAttributes(tree);
 			tree.SetInt(SIZE_X_ATTR, size.X);
 			tree.SetInt(SIZE_Y_ATTR, size.Y);
-			tree.WriteUShortArray(GRID_ATTR, grid);
+			tree.WritePackedUShortArray(GRID_ATTR, grid, (ushort)(blockIds.Length - 1), size.X * size.Y);
 			tree[BLOCK_IDS_ATTR] = new IntArrayAttribute(blockIds);
 			tree[LAYERS_PACKED_ATTR] = new ByteArrayAttribute(layersPacked);
 			tree.SetDouble(PREV_CALENDAR_HOUR_ATTR, prevCalendarHour);
@@ -150,8 +150,8 @@ namespace FieldsOfSalt.Blocks.Entities
 		{
 			base.FromTreeAttributes(tree, worldAccessForResolve);
 			size = new Vec2i(tree.GetInt(SIZE_X_ATTR, 5), tree.GetInt(SIZE_Y_ATTR, 5));
-			grid = tree.ReadUShortArray(GRID_ATTR);
 			blockIds = (tree[BLOCK_IDS_ATTR] as IntArrayAttribute)?.value;
+			grid = tree.ReadPackedUShortArray(GRID_ATTR, (ushort)(blockIds?.Length ?? 0), size.X * size.Y);
 			layersPacked = (tree[LAYERS_PACKED_ATTR] as ByteArrayAttribute)?.value;
 			prevCalendarHour = tree.GetDouble(PREV_CALENDAR_HOUR_ATTR);
 			layerProgress = tree.GetDouble(LAYER_PROGRESS_ATTR);
@@ -729,7 +729,7 @@ namespace FieldsOfSalt.Blocks.Entities
 			var stack = mainBlock.Clone();
 			stack.Attributes.SetInt(SIZE_X_ATTR, size.X);
 			stack.Attributes.SetInt(SIZE_Y_ATTR, size.Y);
-			stack.Attributes.WriteUShortArray(GRID_ATTR, grid);
+			stack.Attributes.WritePackedUShortArray(GRID_ATTR, grid, (ushort)(blockId2index.Count - 1), size.X * size.Y);
 
 			var blockIds = new int[blockId2index.Count];
 			foreach(var pair in blockId2index) blockIds[pair.Value] = pair.Key;

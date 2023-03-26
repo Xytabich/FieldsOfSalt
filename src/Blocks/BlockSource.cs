@@ -33,7 +33,7 @@ namespace FieldsOfSalt.Blocks
 
 		public unsafe void GenLiquidMesh(IBlockAccessor blockAccessor, BlockPos pos, MeshData outMesh, int[] levels)
 		{
-			GraphicUtil.AddLiquidMesh(outMesh, fillArea);
+			GraphicUtil.AddLiquidMesh(outMesh, fillArea, 0);
 
 			float* heights = stackalloc float[4];
 			GraphicUtil.GetLiquidHeightsHorizontal(levels, fillArea, heights);

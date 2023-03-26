@@ -4,27 +4,21 @@ namespace FieldsOfSalt.Utils
 {
 	public static class TreeAttributeUtils
 	{
-		public static unsafe ushort[] ReadUShortArray(this ITreeAttribute tree, string key, ushort[] defaultValue = null)
+		public static unsafe ushort[] ReadPackedUShortArray(this ITreeAttribute tree, string key, ushort maxValue, int count, ushort[] defaultValue = null)
 		{
-			var bytes = tree[key] as ByteArrayAttribute;
-			if(bytes != null && (bytes.value.Length & 1) == 0)
+			int byteSize = BitPackUtil.CalcBytesCount(maxValue, count);
+			if(tree[key] is ByteArrayAttribute bytes && bytes.value.Length == byteSize)
 			{
-				int len = bytes.value.Length >> 1;
-				var value = new ushort[len];
-				fixed(byte* dPtr = bytes.value)
+				var value = new ushort[count];
+				fixed(byte* dataPtr = bytes.value)
 				{
-					var dataPtr = dPtr;
 					fixed(ushort* vPtr = value)
 					{
 						var valuePtr = vPtr;
-						for(int i = 0; i < len; i++)
+						var reader = new PackedUshortArrayReader(dataPtr, byteSize, maxValue);
+						for(int i = 0; i < count; i++)
 						{
-							*valuePtr = *dataPtr;
-							dataPtr++;
-
-							*valuePtr |= (ushort)(*dataPtr << 8);
-							dataPtr++;
-
+							*valuePtr = reader.Read();
 							valuePtr++;
 						}
 					}
@@ -34,26 +28,22 @@ namespace FieldsOfSalt.Utils
 			return defaultValue;
 		}
 
-		public static unsafe void WriteUShortArray(this ITreeAttribute tree, string key, ushort[] value)
+		public static unsafe void WritePackedUShortArray(this ITreeAttribute tree, string key, ushort[] value, ushort maxValue, int count)
 		{
-			var bytes = new byte[value.Length << 1];
-			int len = value.Length;
-			fixed(byte* dPtr = bytes)
+			int byteSize = BitPackUtil.CalcBytesCount(maxValue, count);
+			var bytes = new byte[byteSize];
+			fixed(byte* dataPtr = bytes)
 			{
-				var dataPtr = dPtr;
 				fixed(ushort* vPtr = value)
 				{
 					var valuePtr = vPtr;
-					for(int i = 0; i < len; i++)
+					var writer = new PackedUshortArrayWriter(dataPtr, byteSize, maxValue);
+					for(int i = 0; i < count; i++)
 					{
-						*dataPtr = (byte)*valuePtr;
-						dataPtr++;
-
-						*dataPtr = (byte)(*valuePtr >> 8);
-						dataPtr++;
-
+						writer.Write(*valuePtr);
 						valuePtr++;
 					}
+					writer.Flush();
 				}
 			}
 			tree[key] = new ByteArrayAttribute(bytes);
