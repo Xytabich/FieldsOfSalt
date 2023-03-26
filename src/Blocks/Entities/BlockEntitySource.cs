@@ -386,7 +386,7 @@ namespace FieldsOfSalt.Blocks.Entities
 				}
 				var accessor = Api.World.BlockAccessor;
 				var tmpPos = new BlockPos();
-				int stackSize = (int)Math.Ceiling(fluidProps.ItemsPerLitre);
+				int stackSize = (int)Math.Ceiling(fluidProps.ItemsPerLitre * 0.01f);
 				foreach(var pair in sinks)
 				{
 					var pos = pair.Key;

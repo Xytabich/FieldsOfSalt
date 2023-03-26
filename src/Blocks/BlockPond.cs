@@ -187,5 +187,20 @@ namespace FieldsOfSalt.Blocks
 				this.recipes = recipes.ToArray();
 			}
 		}
+
+		public override int GetColorWithoutTint(ICoreClientAPI capi, BlockPos pos)
+		{
+			return GetColorWithoutTint(capi, pos, pos);
+		}
+
+		public int GetColorWithoutTint(ICoreClientAPI capi, BlockPos mainPos, BlockPos partPos)
+		{
+			if(capi.World.BlockAccessor.GetBlockEntity(mainPos) is BlockEntityPond pond)
+			{
+				var color = pond.GetColorWithoutTint(partPos);
+				if(color.HasValue) return color.Value;
+			}
+			return base.GetColorWithoutTint(capi, mainPos);
+		}
 	}
 }

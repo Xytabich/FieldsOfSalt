@@ -110,10 +110,10 @@ namespace FieldsOfSalt.Utils
 		private void Fill()
 		{
 			int count = Math.Min(8, inDataSize - inDataOffset);
-			for(int i = 0; i < count; i++)
+			buffer = 0;
+			for(int i = 0, b = 0; i < count; i++, b += 8)
 			{
-				buffer <<= 8;
-				buffer |= *inData;
+				buffer |= (ulong)*inData << b;
 				inData++;
 				inDataOffset++;
 			}
@@ -131,9 +131,9 @@ namespace FieldsOfSalt.Utils
 
 		public static void CalcIntegerParams(uint maxValue, out int width, out uint mask)
 		{
-			uint v = 2;
-			int counter = 1;
-			while(v < maxValue)
+			uint v = 1;
+			int counter = 0;
+			while(v <= maxValue)
 			{
 				v <<= 1;
 				counter++;

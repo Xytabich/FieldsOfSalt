@@ -101,7 +101,7 @@ namespace FieldsOfSalt.Blocks.Entities
 
 				size = new Vec2i(byItemStack.Attributes.GetInt(SIZE_X_ATTR, 5), byItemStack.Attributes.GetInt(SIZE_Y_ATTR, 5));
 				blockIds = ((IntArrayAttribute)byItemStack.Attributes[BLOCK_IDS_ATTR]).value;
-				grid = byItemStack.Attributes.ReadPackedUShortArray(GRID_ATTR, (ushort)blockIds.Length, size.X * size.Y);
+				grid = byItemStack.Attributes.ReadPackedUShortArray(GRID_ATTR, (ushort)(blockIds.Length - 1), size.X * size.Y);
 				layersPacked = new byte[(((size.X - 2) * (size.Y - 2)) >> 1) + 1];
 				prevCalendarHour = Api.World.Calendar.TotalHours;
 				layerProgress = 0;
@@ -151,7 +151,7 @@ namespace FieldsOfSalt.Blocks.Entities
 			base.FromTreeAttributes(tree, worldAccessForResolve);
 			size = new Vec2i(tree.GetInt(SIZE_X_ATTR, 5), tree.GetInt(SIZE_Y_ATTR, 5));
 			blockIds = (tree[BLOCK_IDS_ATTR] as IntArrayAttribute)?.value;
-			grid = tree.ReadPackedUShortArray(GRID_ATTR, (ushort)(blockIds?.Length ?? 0), size.X * size.Y);
+			grid = tree.ReadPackedUShortArray(GRID_ATTR, (ushort)(blockIds == null ? 0 : (blockIds.Length - 1)), size.X * size.Y);
 			layersPacked = (tree[LAYERS_PACKED_ATTR] as ByteArrayAttribute)?.value;
 			prevCalendarHour = tree.GetDouble(PREV_CALENDAR_HOUR_ATTR);
 			layerProgress = tree.GetDouble(LAYER_PROGRESS_ATTR);
@@ -302,6 +302,7 @@ namespace FieldsOfSalt.Blocks.Entities
 		public void DisassembleMultiblock()
 		{
 			if(layersPacked == null) return;
+			if(Api.Side != EnumAppSide.Server) return;
 
 			var tmpPos = Pos.Copy();
 			var tmpDropPos = new Vec3d();
@@ -340,7 +341,7 @@ namespace FieldsOfSalt.Blocks.Entities
 			int yLast = size.X * (size.Y - 1);
 			int xPosStart = Pos.X - (size.X >> 1);
 
-			var accessor = Api.World.GetBlockAccessorBulkUpdate(false, false);
+			var accessor = Api.World.GetBlockAccessorBulkUpdate(true, false);
 			for(int y = 0, zp = (Pos.Z - (size.Y >> 1)); y <= yLast; y += yStep, zp++)
 			{
 				tmpPos.Z = zp;
@@ -411,6 +412,25 @@ namespace FieldsOfSalt.Blocks.Entities
 				if(amount > 0) return GetPickInteractionHelp();
 			}
 			return Array.Empty<WorldInteraction>();
+		}
+
+		public int? GetColorWithoutTint(BlockPos partPos)
+		{
+			var capi = (ICoreClientAPI)Api;
+			if(recipe != null && recipe.OutputTexture?.Baked != null)
+			{
+				int index = (partPos.X - (Pos.X - ((size.X - 2) >> 1))) + (partPos.Z - (Pos.Z - ((size.Y - 2) >> 1))) * (size.X - 2);
+				if(index >= 0 && index < ((size.X - 2) * (size.Y - 2)))
+				{
+					int value = layersPacked[index >> 1];
+					int amount = (index & 1) == 0 ? (value & 15) : (value >> 4);
+					if(amount > 0)
+					{
+						return capi.BlockTextureAtlas.GetAverageColor(recipe.OutputTexture.Baked.TextureSubId);
+					}
+				}
+			}
+			return GetPartBlockAt(partPos)?.GetColor(capi, partPos);
 		}
 
 		public bool TryAccept(IBlockAccessor blockAccessor, BlockPos pos, BlockFacing face, ref ItemStack liquid)

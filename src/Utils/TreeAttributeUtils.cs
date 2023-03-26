@@ -30,6 +30,7 @@ namespace FieldsOfSalt.Utils
 
 		public static unsafe void WritePackedUShortArray(this ITreeAttribute tree, string key, ushort[] value, ushort maxValue, int count)
 		{
+			if(value == null) return;
 			int byteSize = BitPackUtil.CalcBytesCount(maxValue, count);
 			var bytes = new byte[byteSize];
 			fixed(byte* dataPtr = bytes)

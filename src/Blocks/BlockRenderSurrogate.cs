@@ -160,6 +160,19 @@ namespace FieldsOfSalt.Blocks
 			return base.GetPlacedBlockName(world, pos);
 		}
 
+		public override int GetColorWithoutTint(ICoreClientAPI capi, BlockPos pos)
+		{
+			var mainPos = new BlockPos();
+			if(mod.GetReferenceToMainBlock(pos, mainPos))
+			{
+				if(capi.World.BlockAccessor.GetBlock(mainPos) is IMultiblockMainBlock main)
+				{
+					return main.GetColorWithoutTint(capi, mainPos, pos);
+				}
+			}
+			return base.GetColorWithoutTint(capi, pos);
+		}
+
 		public override WorldInteraction[] GetPlacedBlockInteractionHelp(IWorldAccessor world, BlockSelection selection, IPlayer forPlayer)
 		{
 			var mainPos = new BlockPos();

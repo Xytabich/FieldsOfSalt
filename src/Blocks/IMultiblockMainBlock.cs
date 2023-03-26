@@ -29,5 +29,7 @@ namespace FieldsOfSalt.Blocks
 		void OnBlockInteractStop(float secondsUsed, IWorldAccessor world, IPlayer byPlayer, BlockPos mainPos, BlockSelection blockSel);
 
 		bool OnBlockInteractCancel(float secondsUsed, IWorldAccessor world, IPlayer byPlayer, BlockPos mainPos, BlockSelection blockSel, EnumItemUseCancelReason cancelReason);
+
+		int GetColorWithoutTint(ICoreClientAPI capi, BlockPos mainPos, BlockPos partPos);
 	}
 }
