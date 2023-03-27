@@ -67,7 +67,7 @@ namespace FieldsOfSalt.Blocks.Entities
 			var inputToResolve = currentLiquidStack ?? recipe?.Input.ResolvedItemstack;
 			if(inputToResolve != null)
 			{
-				if(!((BlockPond)Block).TryGetRecipe(api.World.BlockAccessor, Pos, inputToResolve, out recipe))
+				if(!mod.TryGetRecipe(inputToResolve, out recipe))
 				{
 					recipe = null;
 					currentLiquidStack = null;
@@ -186,7 +186,7 @@ namespace FieldsOfSalt.Blocks.Entities
 				var inputToResolve = currentLiquidStack ?? recipe?.Input.ResolvedItemstack;
 				if(inputToResolve != null)
 				{
-					if(!((BlockPond)Block).TryGetRecipe(Api.World.BlockAccessor, Pos, inputToResolve, out recipe))
+					if(!mod.TryGetRecipe(inputToResolve, out recipe))
 					{
 						recipe = null;
 						currentLiquidStack = null;
@@ -438,7 +438,7 @@ namespace FieldsOfSalt.Blocks.Entities
 			if(Api.Side != EnumAppSide.Server) return false;
 			if(currentLiquidStack == null)
 			{
-				if(((BlockPond)Block).TryGetRecipe(blockAccessor, pos, liquid, out var evaporationRecipe) &&
+				if(mod.TryGetRecipe(liquid, out var evaporationRecipe) &&
 					(recipe == null || recipe == evaporationRecipe || recipe.Output.ResolvedItemstack.Equals(
 						Api.World, evaporationRecipe.Output.ResolvedItemstack, GlobalConstants.IgnoredStackAttributes)))
 				{

@@ -90,6 +90,7 @@
     <Compile Include="src\Recipes\EvaporationRecipe.cs" />
     <Compile Include="src\Utils\BitPack.cs" />
     <Compile Include="src\Utils\GraphicUtil.cs" />
+    <Compile Include="src\Utils\SerializationUtils.cs" />
     <Compile Include="src\Utils\TreeAttributeUtils.cs" />
   </ItemGroup>
   <ItemGroup>

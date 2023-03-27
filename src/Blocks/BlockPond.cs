@@ -1,8 +1,5 @@
 ﻿using FieldsOfSalt.Blocks.Entities;
-using FieldsOfSalt.Recipes;
-using FieldsOfSalt.Utils;
 using System;
-using System.Collections.Generic;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
@@ -11,23 +8,6 @@ namespace FieldsOfSalt.Blocks
 {
 	public class BlockPond : Block, IMultiblockMainBlock, IMultiblockPhantomBlock
 	{
-		private EvaporationRecipe[] recipes = null;
-
-		public bool TryGetRecipe(IBlockAccessor blockAccessor, BlockPos pos, ItemStack forLiquid, out EvaporationRecipe evaporationRecipe)
-		{
-			EnsureRecipes();
-
-			int index = Array.FindIndex(recipes, r => r.Input.ResolvedItemstack.Satisfies(forLiquid));
-			if(index >= 0)
-			{
-				evaporationRecipe = recipes[index];
-				return true;
-			}
-
-			evaporationRecipe = null;
-			return false;
-		}
-
 		public override bool OnBlockInteractStart(IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel)
 		{
 			return OnBlockInteractStart(world, byPlayer, blockSel.Position, blockSel);
@@ -149,43 +129,6 @@ namespace FieldsOfSalt.Blocks
 				return pond.GetInteractionHelp(world, selection, forPlayer);
 			}
 			return Array.Empty<WorldInteraction>();
-		}
-
-		private void EnsureRecipes()
-		{
-			if(recipes == null)
-			{
-				var recipes = new List<EvaporationRecipe>();
-				try
-				{
-					var capi = api as ICoreClientAPI;
-					var list = Attributes?["recipes"].AsArray<EvaporationRecipe>(null, Code.Domain);
-					if(list != null)
-					{
-						for(int i = 0; i < list.Length; i++)
-						{
-							if(list[i].Input.Resolve(api.World, "evaporation recipe input"))
-							{
-								if(list[i].Output.Resolve(api.World, "evaporation recipe output"))
-								{
-									list[i].Init();
-									recipes.Add(list[i]);
-
-									if(capi != null)
-									{
-										GraphicUtil.BakeTexture(capi, list[i].OutputTexture, "Evaporation recipe", out _);
-									}
-								}
-							}
-						}
-					}
-				}
-				catch(Exception e)
-				{
-					api.Logger.Error("Exception when trying to parse evaporation recipes:\n{0}", e);
-				}
-				this.recipes = recipes.ToArray();
-			}
 		}
 
 		public override int GetColorWithoutTint(ICoreClientAPI capi, BlockPos pos)
