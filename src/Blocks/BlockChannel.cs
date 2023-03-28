@@ -30,7 +30,7 @@ namespace FieldsOfSalt.Blocks
 			axis = Variant["side"] == "we" ? EnumAxis.X : EnumAxis.Z;
 		}
 
-		public override void OnJsonTesselation(ref MeshData sourceMesh, ref int[] lightRgbsByCorner, BlockPos pos, Block[] chunkExtBlocks, int extIndex3d)//TODO: create renderer for this, as chunk maybe not render at some angles
+		public override void OnJsonTesselation(ref MeshData sourceMesh, ref int[] lightRgbsByCorner, BlockPos pos, Block[] chunkExtBlocks, int extIndex3d)
 		{
 			if(Shape?.Alternates != null && Shape.Alternates.Length >= 16)
 			{

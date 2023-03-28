@@ -88,6 +88,7 @@
     <Compile Include="src\FieldsOfSaltMod.cs" />
     <Compile Include="src\Items\ItemPondTemplate.cs" />
     <Compile Include="src\Recipes\EvaporationRecipe.cs" />
+    <Compile Include="src\Renderer\TemplateAreaRenderer.cs" />
     <Compile Include="src\Utils\BitPack.cs" />
     <Compile Include="src\Utils\GraphicUtil.cs" />
     <Compile Include="src\Utils\SerializationUtils.cs" />

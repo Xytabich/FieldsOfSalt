@@ -7,6 +7,8 @@ using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
+using Vintagestory.API.Server;
+using Vintagestory.API.Util;
 using Vintagestory.GameContent;
 
 namespace FieldsOfSalt.Blocks.Entities
@@ -512,7 +514,6 @@ namespace FieldsOfSalt.Blocks.Entities
 					evaporatedUnits = Math.Min(evaporatedUnits, currentLiquidStack.StackSize);
 					currentLiquidStack.StackSize -= evaporatedUnits;
 					if(currentLiquidStack.StackSize == 0) currentLiquidStack = null;
-					markDirtyNext = true;//TODO: maybe use small network messages instead? if only need to update liquid amount
 
 					layerProgress += (double)evaporatedUnits / unitsInLayer;
 					if(layerProgress >= 1)
@@ -597,6 +598,10 @@ namespace FieldsOfSalt.Blocks.Entities
 						CalculateLiquidCapacity(usedLayers);
 						markDirtyNext = true;
 					}
+					else if(!markDirtyNext && Api is ICoreServerAPI sapi)
+					{
+						sapi.Network.BroadcastBlockEntityPacket<int>(Pos, 2001, currentLiquidStack?.StackSize ?? 0);
+					}
 				}
 			}
 			prevCalendarHour = Api.World.Calendar.TotalHours;
@@ -604,6 +609,21 @@ namespace FieldsOfSalt.Blocks.Entities
 			{
 				markDirtyNext = false;
 				MarkDirty(true);
+			}
+		}
+
+		public override void OnReceivedServerPacket(int packetid, byte[] data)
+		{
+			base.OnReceivedServerPacket(packetid, data);
+			if(packetid == 2001 && data.Length == 4)
+			{
+				if(currentLiquidStack != null)
+				{
+					int amount = SerializerUtil.Deserialize<int>(data);
+					if(amount <= 0) currentLiquidStack = null;
+					else currentLiquidStack.StackSize = amount;
+					MarkDirty(true);
+				}
 			}
 		}
 

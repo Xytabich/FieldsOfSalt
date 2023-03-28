@@ -150,5 +150,20 @@ namespace FieldsOfSalt.Blocks
 			}
 			return base.GetColorWithoutTint(capi, mainPos);
 		}
+
+		public override Cuboidf[] GetCollisionBoxes(IBlockAccessor blockAccessor, BlockPos pos)
+		{
+			return GetCollisionBoxes(blockAccessor, pos, pos);
+		}
+
+		public Cuboidf[] GetCollisionBoxes(IBlockAccessor blockAccessor, BlockPos mainPos, BlockPos partPos)
+		{
+			if(blockAccessor.GetBlockEntity(mainPos) is BlockEntityPond pond)
+			{
+				var block = pond.GetPartBlockAt(partPos);
+				if(block != null) return block.GetCollisionBoxes(blockAccessor, partPos);
+			}
+			return base.GetCollisionBoxes(blockAccessor, mainPos);
+		}
 	}
 }

@@ -13,7 +13,7 @@ using Vintagestory.ServerMods;
 
 namespace FieldsOfSalt.Items
 {
-	public class ItemPondTemplate : Item//TODO: OnItemRender draw horizontal area
+	public class ItemPondTemplate : Item
 	{
 		private WorldInteraction[] interactHelp = new WorldInteraction[] { new WorldInteraction() {
 			MouseButton = EnumMouseButton.Right,
@@ -25,6 +25,14 @@ namespace FieldsOfSalt.Items
 
 		private TemplateInfo template = null;
 		private bool templateInvalid = false;
+
+		private FieldsOfSaltMod mod;
+
+		public override void OnLoaded(ICoreAPI api)
+		{
+			base.OnLoaded(api);
+			mod = api.ModLoader.GetModSystem<FieldsOfSaltMod>();
+		}
 
 		public override void OnHeldInteractStart(ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel, EntitySelection entitySel, bool firstEvent, ref EnumHandHandling handling)
 		{
@@ -43,6 +51,7 @@ namespace FieldsOfSalt.Items
 					attr.RemoveAttribute("startX");
 					attr.RemoveAttribute("startY");
 					attr.RemoveAttribute("startZ");
+					slot.MarkDirty();
 
 					var fromPos = new BlockPos(
 						Math.Min(x.Value, blockSel.Position.X),
@@ -65,6 +74,41 @@ namespace FieldsOfSalt.Items
 				}
 			}
 			handling = EnumHandHandling.Handled;
+		}
+
+		public override void OnHeldRenderOpaque(ItemSlot inSlot, IClientPlayer byPlayer)
+		{
+			base.OnHeldRenderOpaque(inSlot, byPlayer);
+			var capi = (ICoreClientAPI)api;
+			if(capi.World.Player == byPlayer && byPlayer.CurrentBlockSelection != null)
+			{
+				var attr = inSlot.Itemstack.Attributes;
+				int? x, y, z;
+				if((x = attr.TryGetInt("startX")).HasValue && (y = attr.TryGetInt("startY")).HasValue && (z = attr.TryGetInt("startZ")).HasValue)
+				{
+					EnsureTemplate();
+					if(templateInvalid) return;
+
+					var blockSel = byPlayer.CurrentBlockSelection;
+					int sx = Math.Abs(blockSel.Position.X - x.Value) + 1;
+					int sz = Math.Abs(blockSel.Position.Z - z.Value) + 1;
+					int color;
+					if(sx < 5 || sz < 5 || sx > template.MaxSize || sz > template.MaxSize || (sx & 1) == 0 || (sz & 1) == 0)
+					{
+						color = ColorUtil.ColorFromRgba(223, 63, 0, 63);
+					}
+					else
+					{
+						color = ColorUtil.ColorFromRgba(63, 223, 0, 63);
+					}
+
+					mod.TemplateAreaRenderer.RenderFrameNext(new Vec3d(
+						blockSel.Position.X * 0.5 + x.Value * 0.5 + 0.5,
+						y.Value + 0.5,
+						blockSel.Position.Z * 0.5 + z.Value * 0.5 + 0.5
+					), new Vec3f(sx, 1, sz), color);
+				}
+			}
 		}
 
 		public override bool OnHeldInteractStep(float secondsUsed, ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel, EntitySelection entitySel)

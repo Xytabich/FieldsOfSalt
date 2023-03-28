@@ -2,8 +2,10 @@
 using FieldsOfSalt.Blocks.Entities;
 using FieldsOfSalt.Items;
 using FieldsOfSalt.Recipes;
+using FieldsOfSalt.Renderer;
 using Newtonsoft.Json.Linq;
 using System.Collections.Concurrent;
+using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
@@ -13,8 +15,12 @@ namespace FieldsOfSalt
 {
 	public class FieldsOfSaltMod : ModSystem
 	{
+		public TemplateAreaRenderer TemplateAreaRenderer => templateAreaRenderer;
+
 		private ConcurrentDictionary<Xyz, Xyz> pos2main = new ConcurrentDictionary<Xyz, Xyz>();
 		private RecipeRegistryGeneric<EvaporationRecipe> pondRecipes;
+
+		private TemplateAreaRenderer templateAreaRenderer = null;
 
 		public override double ExecuteOrder()
 		{
@@ -36,6 +42,12 @@ namespace FieldsOfSalt
 			api.RegisterBlockEntityClass("fieldsofsalt:pond", typeof(BlockEntityPond));
 
 			pondRecipes = api.RegisterRecipeRegistry<RecipeRegistryGeneric<EvaporationRecipe>>("evaporationpondrecipes");
+		}
+
+		public override void StartClientSide(ICoreClientAPI api)
+		{
+			base.StartClientSide(api);
+			templateAreaRenderer = new TemplateAreaRenderer(api);
 		}
 
 		public override void AssetsLoaded(ICoreAPI api)
@@ -76,6 +88,12 @@ namespace FieldsOfSalt
 				}
 				api.World.Logger.Event("{0} evaporation pond recipes loaded{1}", quantityRegistered, (quantityIgnored != 0) ? $" ({quantityIgnored} could not be resolved)" : "");
 			}
+		}
+
+		public override void Dispose()
+		{
+			base.Dispose();
+			templateAreaRenderer?.Dispose();
 		}
 
 		public bool TryGetRecipe(ItemStack forLiquid, out EvaporationRecipe evaporationRecipe)

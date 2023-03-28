@@ -4,7 +4,7 @@ using Vintagestory.API.MathTools;
 
 namespace FieldsOfSalt.Blocks
 {
-	public class BlockRenderSurrogate : Block, IMultiblockPhantomBlock//TODO: get color override
+	public class BlockRenderSurrogate : Block, IMultiblockPhantomBlock
 	{
 		private FieldsOfSaltMod mod;
 
@@ -184,6 +184,19 @@ namespace FieldsOfSalt.Blocks
 				}
 			}
 			return base.GetPlacedBlockInteractionHelp(world, selection, forPlayer);
+		}
+
+		public override Cuboidf[] GetCollisionBoxes(IBlockAccessor blockAccessor, BlockPos pos)
+		{
+			var mainPos = new BlockPos();
+			if(mod.GetReferenceToMainBlock(pos, mainPos))
+			{
+				if(blockAccessor.GetBlock(mainPos) is IMultiblockMainBlock main)
+				{
+					return main.GetCollisionBoxes(blockAccessor, mainPos, pos);
+				}
+			}
+			return base.GetCollisionBoxes(blockAccessor, pos);
 		}
 	}
 }

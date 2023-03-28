@@ -29,7 +29,7 @@ namespace FieldsOfSalt.Blocks.Entities
 		private MeshData tmpMesh = null;
 		private ItemStack fluidStack = null;
 		private WaterTightContainableProps fluidProps = null;
-		private TextureAtlasPosition fluidTexture = null;
+		private FluidGraphicProps fluidGraphicProps = null;
 
 		public override void Initialize(ICoreAPI api)
 		{
@@ -45,7 +45,8 @@ namespace FieldsOfSalt.Blocks.Entities
 					fillLevel = channelLine.Length + 8;
 					if(Api.Side == EnumAppSide.Client)
 					{
-						GraphicUtil.BakeTexture((ICoreClientAPI)Api, fluidProps.Texture, "Liquid source", out fluidTexture);
+						GraphicUtil.BakeTexture((ICoreClientAPI)Api, fluidProps.Texture, "Liquid source", out var texture);
+						fluidGraphicProps = new FluidGraphicProps(texture, fluidProps.GlowLevel);
 					}
 				}
 				else
@@ -215,7 +216,8 @@ namespace FieldsOfSalt.Blocks.Entities
 						{
 							if(Api.Side == EnumAppSide.Client)
 							{
-								GraphicUtil.BakeTexture((ICoreClientAPI)Api, fluidProps.Texture, "Liquid source", out fluidTexture);
+								GraphicUtil.BakeTexture((ICoreClientAPI)Api, fluidProps.Texture, "Liquid source", out var texture);
+								fluidGraphicProps = new FluidGraphicProps(texture, fluidProps.GlowLevel);
 							}
 						}
 						else
@@ -241,10 +243,10 @@ namespace FieldsOfSalt.Blocks.Entities
 		public override bool OnTesselation(ITerrainMeshPool mesher, ITesselatorAPI tessThreadTesselator)
 		{
 			//Cache in case of multithreading
-			var fluidTexture = this.fluidTexture;
+			var fluidProps = this.fluidGraphicProps;
 			var fillLevel = this.fillLevel;
 			var channelLine = this.channelLine;
-			if(fluidTexture != null && fillLevel > 0)
+			if(fluidProps != null && fillLevel > 0)
 			{
 				if(tmpMesh == null) tmpMesh = new MeshData(24, 36).WithColorMaps().WithRenderpasses().WithXyzFaces();
 				var accessor = Api.World.GetLockFreeBlockAccessor();
@@ -271,9 +273,9 @@ namespace FieldsOfSalt.Blocks.Entities
 					//{
 					//	tmpMesh.Rgba[j * 4] = 127;
 					//}
-					tmpMesh.SetTexPos(fluidTexture);
+					tmpMesh.SetTexPos(fluidProps.texture);
 					tmpMesh.RenderPassesAndExtraBits.Fill((short)EnumChunkRenderPass.Transparent);
-					tmpMesh.Flags.Fill(fluidProps.GlowLevel);
+					tmpMesh.Flags.Fill(fluidProps.glowLevel);
 					mesher.AddMeshData(tmpMesh);
 				}
 
@@ -305,9 +307,9 @@ namespace FieldsOfSalt.Blocks.Entities
 							//	tmpMesh.Rgba[j * 4] = 127;
 							//}
 							tmpMesh.Translate(offset);
-							tmpMesh.SetTexPos(fluidTexture);
+							tmpMesh.SetTexPos(fluidProps.texture);
 							tmpMesh.RenderPassesAndExtraBits.Fill((short)EnumChunkRenderPass.Transparent);
-							tmpMesh.Flags.Fill(fluidProps.GlowLevel);
+							tmpMesh.Flags.Fill(fluidProps.glowLevel);
 							mesher.AddMeshData(tmpMesh);
 						}
 					}
@@ -367,7 +369,8 @@ namespace FieldsOfSalt.Blocks.Entities
 				{
 					if(fluidProps != null && Api.Side == EnumAppSide.Client)
 					{
-						GraphicUtil.BakeTexture((ICoreClientAPI)Api, fluidProps.Texture, "Liquid source", out fluidTexture);
+						GraphicUtil.BakeTexture((ICoreClientAPI)Api, fluidProps.Texture, "Liquid source", out var texture);
+						fluidGraphicProps = new FluidGraphicProps(texture, fluidProps.GlowLevel);
 					}
 					ResetLiquidLayer(blockAccessor);
 					MarkDirty(true);
@@ -407,7 +410,7 @@ namespace FieldsOfSalt.Blocks.Entities
 				{
 					if(fillLevel <= 0)
 					{
-						fluidTexture = null;
+						fluidGraphicProps = null;
 					}
 					MarkDirty(true);
 				}
@@ -523,6 +526,18 @@ namespace FieldsOfSalt.Blocks.Entities
 			{
 				this.connectedFace = connectedFace;
 				this.sink = sink;
+			}
+		}
+
+		private class FluidGraphicProps
+		{
+			public TextureAtlasPosition texture;
+			public int glowLevel;
+
+			public FluidGraphicProps(TextureAtlasPosition texture, int glowLevel)
+			{
+				this.texture = texture;
+				this.glowLevel = glowLevel;
 			}
 		}
 	}

@@ -31,5 +31,7 @@ namespace FieldsOfSalt.Blocks
 		bool OnBlockInteractCancel(float secondsUsed, IWorldAccessor world, IPlayer byPlayer, BlockPos mainPos, BlockSelection blockSel, EnumItemUseCancelReason cancelReason);
 
 		int GetColorWithoutTint(ICoreClientAPI capi, BlockPos mainPos, BlockPos partPos);
+
+		Cuboidf[] GetCollisionBoxes(IBlockAccessor blockAccessor, BlockPos mainPos, BlockPos partPos);
 	}
 }
