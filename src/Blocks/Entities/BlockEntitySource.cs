@@ -17,7 +17,7 @@ namespace FieldsOfSalt.Blocks.Entities
 		private const int MAX_PATH_LENGTH = 128;
 
 		private int[] channelLine = Array.Empty<int>();
-		private int fluidBlock = 0;
+		private int liquidBlock = 0;
 
 		private int fillLevel = 0;
 
@@ -27,9 +27,9 @@ namespace FieldsOfSalt.Blocks.Entities
 		private ConcurrentDictionary<Xyz, SinkInfo> sinks = new ConcurrentDictionary<Xyz, SinkInfo>();
 
 		private MeshData tmpMesh = null;
-		private ItemStack fluidStack = null;
-		private WaterTightContainableProps fluidProps = null;
-		private FluidGraphicProps fluidGraphicProps = null;
+		private ItemStack liquidStack = null;
+		private WaterTightContainableProps liquidProps = null;
+		private LiquidGraphicProps liquidGraphicProps = null;
 
 		public override void Initialize(ICoreAPI api)
 		{
@@ -38,20 +38,20 @@ namespace FieldsOfSalt.Blocks.Entities
 			mod = api.ModLoader.GetModSystem<FieldsOfSaltMod>();
 
 			fillLevel = 0;
-			if(fluidBlock > 0)
+			if(liquidBlock > 0)
 			{
-				if(TryGetFluidStack(Api, Api.World.GetBlock(fluidBlock), out fluidStack, out fluidProps))
+				if(TryGetLiquidStack(Api, Api.World.GetBlock(liquidBlock), out liquidStack, out liquidProps))
 				{
 					fillLevel = channelLine.Length + 8;
 					if(Api.Side == EnumAppSide.Client)
 					{
-						GraphicUtil.BakeTexture((ICoreClientAPI)Api, fluidProps.Texture, "Liquid source", out var texture);
-						fluidGraphicProps = new FluidGraphicProps(texture, fluidProps.GlowLevel);
+						GraphicUtil.BakeTexture((ICoreClientAPI)Api, liquidProps.Texture, "Liquid source", out var texture);
+						liquidGraphicProps = new LiquidGraphicProps(texture, liquidProps.GlowLevel);
 					}
 				}
 				else
 				{
-					fluidBlock = 0;
+					liquidBlock = 0;
 				}
 			}
 			RegisterMultiblock(0, channelLine.Length);
@@ -121,13 +121,13 @@ namespace FieldsOfSalt.Blocks.Entities
 			if(Api != null && Api.Side == EnumAppSide.Client)
 			{
 				int level = fillLevel - Math.Abs(face.IsAxisWE ? (blockPos.X - Pos.X) : (blockPos.Z - Pos.Z));
-				if(level <= 0 || fluidBlock <= 0)
+				if(level <= 0 || liquidBlock <= 0)
 				{
 					sink.SetLiquidLevel(Api.World.BlockAccessor, blockPos, connectedFace, 0, null);
 				}
 				else
 				{
-					sink.SetLiquidLevel(Api.World.BlockAccessor, blockPos, connectedFace, Math.Min(level, 7), fluidProps);
+					sink.SetLiquidLevel(Api.World.BlockAccessor, blockPos, connectedFace, Math.Min(level, 7), liquidProps);
 				}
 				MarkDirty(true);
 			}
@@ -197,32 +197,32 @@ namespace FieldsOfSalt.Blocks.Entities
 		public override void FromTreeAttributes(ITreeAttribute tree, IWorldAccessor worldAccessForResolve)
 		{
 			base.FromTreeAttributes(tree, worldAccessForResolve);
-			int nextFluidBlock = tree.GetInt("fluidBlock", 0);
+			int nextLiquidBlock = tree.GetInt("liquidBlock", 0);
 			var newLine = (tree["channelLine"] as IntArrayAttribute)?.value ?? Array.Empty<int>();
 			int prevCount = channelLine.Length;
 			channelLine = newLine;
 			if(Api == null)
 			{
-				fluidBlock = nextFluidBlock;
+				liquidBlock = nextLiquidBlock;
 			}
 			else
 			{
-				if(fluidBlock != nextFluidBlock)
+				if(liquidBlock != nextLiquidBlock)
 				{
-					fluidBlock = nextFluidBlock;
-					if(fluidBlock > 0)
+					liquidBlock = nextLiquidBlock;
+					if(liquidBlock > 0)
 					{
-						if(TryGetFluidStack(Api, Api.World.GetBlock(fluidBlock), out fluidStack, out fluidProps))
+						if(TryGetLiquidStack(Api, Api.World.GetBlock(liquidBlock), out liquidStack, out liquidProps))
 						{
 							if(Api.Side == EnumAppSide.Client)
 							{
-								GraphicUtil.BakeTexture((ICoreClientAPI)Api, fluidProps.Texture, "Liquid source", out var texture);
-								fluidGraphicProps = new FluidGraphicProps(texture, fluidProps.GlowLevel);
+								GraphicUtil.BakeTexture((ICoreClientAPI)Api, liquidProps.Texture, "Liquid source", out var texture);
+								liquidGraphicProps = new LiquidGraphicProps(texture, liquidProps.GlowLevel);
 							}
 						}
 						else
 						{
-							fluidBlock = 0;
+							liquidBlock = 0;
 						}
 					}
 
@@ -237,16 +237,16 @@ namespace FieldsOfSalt.Blocks.Entities
 		{
 			base.ToTreeAttributes(tree);
 			tree["channelLine"] = new IntArrayAttribute(channelLine);
-			tree.SetInt("fluidBlock", fluidBlock);
+			tree.SetInt("liquidBlock", liquidBlock);
 		}
 
 		public override bool OnTesselation(ITerrainMeshPool mesher, ITesselatorAPI tessThreadTesselator)
 		{
 			//Cache in case of multithreading
-			var fluidProps = this.fluidGraphicProps;
+			var liquidProps = this.liquidGraphicProps;
 			var fillLevel = this.fillLevel;
 			var channelLine = this.channelLine;
-			if(fluidProps != null && fillLevel > 0)
+			if(liquidProps != null && fillLevel > 0)
 			{
 				if(tmpMesh == null) tmpMesh = new MeshData(24, 36).WithColorMaps().WithRenderpasses().WithXyzFaces();
 				var accessor = Api.World.GetLockFreeBlockAccessor();
@@ -273,9 +273,9 @@ namespace FieldsOfSalt.Blocks.Entities
 					//{
 					//	tmpMesh.Rgba[j * 4] = 127;
 					//}
-					tmpMesh.SetTexPos(fluidProps.texture);
+					tmpMesh.SetTexPos(liquidProps.texture);
 					tmpMesh.RenderPassesAndExtraBits.Fill((short)EnumChunkRenderPass.Transparent);
-					tmpMesh.Flags.Fill(fluidProps.glowLevel);
+					tmpMesh.Flags.Fill(liquidProps.glowLevel);
 					mesher.AddMeshData(tmpMesh);
 				}
 
@@ -307,9 +307,9 @@ namespace FieldsOfSalt.Blocks.Entities
 							//	tmpMesh.Rgba[j * 4] = 127;
 							//}
 							tmpMesh.Translate(offset);
-							tmpMesh.SetTexPos(fluidProps.texture);
+							tmpMesh.SetTexPos(liquidProps.texture);
 							tmpMesh.RenderPassesAndExtraBits.Fill((short)EnumChunkRenderPass.Transparent);
-							tmpMesh.Flags.Fill(fluidProps.glowLevel);
+							tmpMesh.Flags.Fill(liquidProps.glowLevel);
 							mesher.AddMeshData(tmpMesh);
 						}
 					}
@@ -334,6 +334,21 @@ namespace FieldsOfSalt.Blocks.Entities
 					channelLine[i] = block.Id;
 				}
 			}
+			if(liquidBlock != 0)
+			{
+				if(oldBlockIdMapping.TryGetValue(liquidBlock, out var code))
+				{
+					var block = worldForNewMappings.GetBlock(code);
+					if(block == null)
+					{
+						liquidBlock = 0;
+					}
+					else
+					{
+						liquidBlock = block.Id;
+					}
+				}
+			}
 		}
 
 		public override void OnStoreCollectibleMappings(Dictionary<int, AssetLocation> blockIdMapping, Dictionary<int, AssetLocation> itemIdMapping)
@@ -343,34 +358,38 @@ namespace FieldsOfSalt.Blocks.Entities
 			{
 				blockIdMapping[channelLine[i]] = Api.World.GetBlock(channelLine[i]).Code;
 			}
+			if(liquidBlock != 0)
+			{
+				blockIdMapping[liquidBlock] = Api.World.GetBlock(liquidBlock).Code;
+			}
 		}
 
 		public void UpdateLiquidBlock(IBlockAccessor blockAccessor)
 		{
-			int nextFluidBlock = 0;
-			WaterTightContainableProps nextFluidProps = null;
-			ItemStack nextFluidStack = null;
+			int nextLiquidBlock = 0;
+			WaterTightContainableProps nextLiquidProps = null;
+			ItemStack nextLiquidStack = null;
 			var block = blockAccessor.GetBlock(Pos.AddCopy(face));
 			if(block.IsLiquid() && block.LiquidLevel >= 7)
 			{
-				if(TryGetFluidStack(Api, block, out var fs, out var fp))
+				if(TryGetLiquidStack(Api, block, out var fs, out var fp))
 				{
-					nextFluidBlock = block.Id;
-					nextFluidProps = fp;
-					nextFluidStack = fs;
+					nextLiquidBlock = block.Id;
+					nextLiquidProps = fp;
+					nextLiquidStack = fs;
 				}
 			}
-			if(nextFluidBlock != fluidBlock)
+			if(nextLiquidBlock != liquidBlock)
 			{
-				fluidBlock = nextFluidBlock;
-				fluidProps = nextFluidProps;
-				fluidStack = nextFluidStack;
+				liquidBlock = nextLiquidBlock;
+				liquidProps = nextLiquidProps;
+				liquidStack = nextLiquidStack;
 				if(Api != null)
 				{
-					if(fluidProps != null && Api.Side == EnumAppSide.Client)
+					if(liquidProps != null && Api.Side == EnumAppSide.Client)
 					{
-						GraphicUtil.BakeTexture((ICoreClientAPI)Api, fluidProps.Texture, "Liquid source", out var texture);
-						fluidGraphicProps = new FluidGraphicProps(texture, fluidProps.GlowLevel);
+						GraphicUtil.BakeTexture((ICoreClientAPI)Api, liquidProps.Texture, "Liquid source", out var texture);
+						liquidGraphicProps = new LiquidGraphicProps(texture, liquidProps.GlowLevel);
 					}
 					ResetLiquidLayer(blockAccessor);
 					MarkDirty(true);
@@ -380,7 +399,7 @@ namespace FieldsOfSalt.Blocks.Entities
 
 		private void OnTick(float dt)
 		{
-			if(fluidBlock > 0)
+			if(liquidBlock > 0)
 			{
 				if(fillLevel < channelLine.Length + 8)
 				{
@@ -389,7 +408,7 @@ namespace FieldsOfSalt.Blocks.Entities
 				}
 				var accessor = Api.World.BlockAccessor;
 				var tmpPos = new BlockPos();
-				int stackSize = (int)Math.Ceiling(fluidProps.ItemsPerLitre * 0.01f);
+				int stackSize = (int)Math.Ceiling(liquidProps.ItemsPerLitre * 0.01f);
 				foreach(var pair in sinks)
 				{
 					var pos = pair.Key;
@@ -397,7 +416,7 @@ namespace FieldsOfSalt.Blocks.Entities
 					if(offset <= fillLevel)
 					{
 						tmpPos.Set(pos.X, pos.Y, pos.Z);
-						var stack = fluidStack;
+						var stack = liquidStack;
 						stack.StackSize = stackSize;
 						pair.Value.sink.TryAccept(accessor, tmpPos, pair.Value.connectedFace, ref stack);
 					}
@@ -410,7 +429,7 @@ namespace FieldsOfSalt.Blocks.Entities
 				{
 					if(fillLevel <= 0)
 					{
-						fluidGraphicProps = null;
+						liquidGraphicProps = null;
 					}
 					MarkDirty(true);
 				}
@@ -438,7 +457,7 @@ namespace FieldsOfSalt.Blocks.Entities
 
 		private void ResetLiquidLayer(IBlockAccessor blockAccessor)
 		{
-			if(Api.Side == EnumAppSide.Client && fluidBlock <= 0)
+			if(Api.Side == EnumAppSide.Client && liquidBlock <= 0)
 			{
 				var tmpPos = new BlockPos();
 				foreach(var pair in sinks)
@@ -493,18 +512,18 @@ namespace FieldsOfSalt.Blocks.Entities
 			}
 		}
 
-		private static bool TryGetFluidStack(ICoreAPI api, Block fluidBlock, out ItemStack fluidStack, out WaterTightContainableProps fluidProps)
+		private static bool TryGetLiquidStack(ICoreAPI api, Block liquidBlock, out ItemStack liquidStack, out WaterTightContainableProps liquidProps)
 		{
 			try
 			{
-				var props = fluidBlock.Attributes?["waterTightContainerProps"].AsObject<WaterTightContainableProps>();
+				var props = liquidBlock.Attributes?["waterTightContainerProps"].AsObject<WaterTightContainableProps>();
 				if(props != null && props.WhenFilled?.Stack != null)
 				{
 					if(props.WhenFilled.Stack.Resolve(api.World, "fieldsofsalt:source"))
 					{
-						fluidStack = props.WhenFilled.Stack.ResolvedItemstack;
-						fluidProps = BlockLiquidContainerBase.GetContainableProps(fluidStack);
-						if(fluidProps != null)
+						liquidStack = props.WhenFilled.Stack.ResolvedItemstack;
+						liquidProps = BlockLiquidContainerBase.GetContainableProps(liquidStack);
+						if(liquidProps != null)
 						{
 							return true;
 						}
@@ -512,8 +531,8 @@ namespace FieldsOfSalt.Blocks.Entities
 				}
 			}
 			catch { }
-			fluidStack = null;
-			fluidProps = null;
+			liquidStack = null;
+			liquidProps = null;
 			return false;
 		}
 
@@ -529,12 +548,12 @@ namespace FieldsOfSalt.Blocks.Entities
 			}
 		}
 
-		private class FluidGraphicProps
+		private class LiquidGraphicProps
 		{
 			public TextureAtlasPosition texture;
 			public int glowLevel;
 
-			public FluidGraphicProps(TextureAtlasPosition texture, int glowLevel)
+			public LiquidGraphicProps(TextureAtlasPosition texture, int glowLevel)
 			{
 				this.texture = texture;
 				this.glowLevel = glowLevel;
