@@ -107,6 +107,11 @@ namespace FieldsOfSalt.Blocks
 			return OnPickBlock(world, mainPos);
 		}
 
+		public override ItemStack OnPickBlock(IWorldAccessor world, BlockPos pos)
+		{
+			return new ItemStack(world.GetItem(AssetLocation.Create(Attributes["templateItem"].AsString(), Code.Domain)));
+		}
+
 		public string GetPlacedBlockName(IWorldAccessor world, BlockPos mainPos, BlockPos partPos)
 		{
 			return GetPlacedBlockName(world, mainPos);

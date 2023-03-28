@@ -3,6 +3,9 @@
 	"class": "fieldsofsalt:pond",
 	"entityclass": "fieldsofsalt:pond",
 	"shape": { "base": "game:block/basic/cube" },
+	"attributes": {
+		"templateItem": "pondtemplate"
+	},
 	"sideOpaque": {
 		"all": false,
 		"down": true
