@@ -193,5 +193,15 @@ namespace FieldsOfSalt.Blocks
 			}
 			return base.GetRandomColor(capi, mainPos, facing, rndIndex);
 		}
+
+		public override bool DisplacesLiquids(IBlockAccessor blockAccess, BlockPos pos)
+		{
+			return true;
+		}
+
+		public override float GetLiquidBarrierHeightOnSide(BlockFacing face, BlockPos pos)
+		{
+			return 1f;
+		}
 	}
 }

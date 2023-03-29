@@ -157,7 +157,7 @@ namespace FieldsOfSalt.Blocks
 			return true;
 		}
 
-		public override float LiquidBarrierHeightOnSide(BlockFacing face, BlockPos pos)
+		public override float GetLiquidBarrierHeightOnSide(BlockFacing face, BlockPos pos)
 		{
 			return 1f;
 		}

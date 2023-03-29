@@ -548,7 +548,11 @@ namespace FieldsOfSalt.Blocks.Entities
 				{
 					evaporatedUnits = Math.Min(evaporatedUnits, currentLiquidStack.StackSize);
 					currentLiquidStack.StackSize -= evaporatedUnits;
-					if(currentLiquidStack.StackSize == 0) currentLiquidStack = null;
+					if(currentLiquidStack.StackSize == 0)
+					{
+						currentLiquidStack = null;
+						markDirtyNext = true;
+					}
 
 					layerProgress += (double)evaporatedUnits / unitsInLayer;
 					if(layerProgress >= 1)
@@ -650,7 +654,7 @@ namespace FieldsOfSalt.Blocks.Entities
 		public override void OnReceivedServerPacket(int packetid, byte[] data)
 		{
 			base.OnReceivedServerPacket(packetid, data);
-			if(packetid == 2001 && data.Length == 4)
+			if(packetid == 2001)
 			{
 				if(currentLiquidStack != null)
 				{

@@ -6,6 +6,6 @@
 	"description": "Adds ponds to evaporate seawater and produce salt",
 	"version": "1.0.0",
 	"dependencies": {
-		"game": "1.18.0-pre.3"
+		"game": "1.18.0-pre.8"
 	}
 }
