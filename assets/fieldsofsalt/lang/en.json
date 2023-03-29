@@ -22,7 +22,7 @@
 
 	"fieldsofsalt:block-pondmain": "Evaporation pond",
 	"fieldsofsalt:block-channel-*": "Liquid channel",
-	"fieldsofsalt:block-source-*": "Liquid source",
+	"fieldsofsalt:block-source-*": "Liquid sluice",
 
 	"fieldsofsalt:item-pondtemplate": "Evaporation pond (Template)",
 
