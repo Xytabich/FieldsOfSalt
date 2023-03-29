@@ -432,7 +432,7 @@ namespace FieldsOfSalt.Blocks.Entities
 					}
 				}
 			}
-			return GetPartBlockAt(partPos)?.GetColor(capi, partPos);
+			return GetPartBlockAt(partPos)?.GetColorWithoutTint(capi, partPos);
 		}
 
 		public bool TryAccept(IBlockAccessor blockAccessor, BlockPos pos, BlockFacing face, ref ItemStack liquid)
