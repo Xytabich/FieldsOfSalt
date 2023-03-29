@@ -33,5 +33,7 @@ namespace FieldsOfSalt.Blocks
 		int GetColorWithoutTint(ICoreClientAPI capi, BlockPos mainPos, BlockPos partPos);
 
 		Cuboidf[] GetCollisionBoxes(IBlockAccessor blockAccessor, BlockPos mainPos, BlockPos partPos);
+
+		int GetRandomColor(ICoreClientAPI capi, BlockPos mainPos, BlockPos partPos, BlockFacing facing, int rndIndex = -1);
 	}
 }

@@ -198,5 +198,18 @@ namespace FieldsOfSalt.Blocks
 			}
 			return base.GetCollisionBoxes(blockAccessor, pos);
 		}
+
+		public override int GetRandomColor(ICoreClientAPI capi, BlockPos pos, BlockFacing facing, int rndIndex = -1)
+		{
+			var mainPos = new BlockPos();
+			if(mod.GetReferenceToMainBlock(pos, mainPos))
+			{
+				if(capi.World.BlockAccessor.GetBlock(mainPos) is IMultiblockMainBlock main)
+				{
+					return main.GetRandomColor(capi, mainPos, pos, facing, rndIndex);
+				}
+			}
+			return base.GetRandomColor(capi, pos, facing, rndIndex);
+		}
 	}
 }

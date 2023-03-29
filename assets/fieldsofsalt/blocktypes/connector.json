@@ -1,21 +1,33 @@
 {
 	"code": "connector",
 	"class": "fieldsofsalt:connector",
-	"behaviors": [ { "name": "NWOrientable" } ],
+	"behaviors": [{ "name": "NWOrientable" }],
 	"variantgroups": [
 		{
 			"code": "rock",
-			"states": [ "whitemarble", "greenmarble", "redmarble", "suevite", "kimberlite" ],
+			"states": [
+				"whitemarble",
+				"greenmarble",
+				"redmarble",
+				"suevite",
+				"kimberlite"
+			],
 			"loadFromProperties": "game:block/rock"
 		},
 		{
 			"code": "side",
-			"states": [ "ns", "we" ]
+			"states": ["ns", "we"]
 		}
 	],
 	"attributes": {
 		"handbook": {
-			"groupBy": [ "connector-*" ]
+			"groupBy": ["connector-*"],
+			"extraSections": [
+				{
+					"title": "fieldsofsalt:handbooktitle-liquidtransfer",
+					"text": "fieldsofsalt:handbooktext-connector"
+				}
+			]
 		}
 	},
 	"shapebytype": {
@@ -32,8 +44,8 @@
 		"rock": { "base": "game:block/stone/polishedrock/{rock}" }
 	},
 	"creativeinventory": {
-		"general": [ "*-ns" ],
-		"decorative": [ "*-ns" ]
+		"general": ["*-ns"],
+		"decorative": ["*-ns"]
 	},
 	"replaceable": 120,
 	"lightAbsorption": 2,
@@ -45,5 +57,12 @@
 				"break": "block/rock-break-pickaxe"
 			}
 		}
+	},
+	"heldTpIdleAnimation": "holdbothhandslarge",
+	"heldTpUseAnimation": "twohandplaceblock",
+	"tpHandTransform": {
+		"translation": { "x": -1.23, "y": -0.91, "z": -0.8 },
+		"rotation": { "x": -2, "y": 25, "z": -78 },
+		"scale": 0.4
 	}
 }

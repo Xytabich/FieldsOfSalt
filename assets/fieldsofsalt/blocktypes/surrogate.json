@@ -3,7 +3,7 @@
 	"variantgroups": [
 		{
 			"code": "type",
-			"states": [ "render" ]
+			"states": ["render"]
 		}
 	],
 	"classByType": {
@@ -11,6 +11,7 @@
 	},
 	"shape": { "base": "game:block/basic/cube" },
 	"drops": [],
+	"replaceable": 100,
 	"sideOpaque": {
 		"all": false,
 		"down": true

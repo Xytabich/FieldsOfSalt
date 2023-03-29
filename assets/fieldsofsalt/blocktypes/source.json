@@ -1,29 +1,28 @@
-// obj =
 {
 	"code": "source",
 	"class": "fieldsofsalt:source",
 	"entityclass": "fieldsofsalt:source",
 	"behaviors": [{ "name": "HorizontalOrientable" }],
-	variantgroups: [
-		{ code: "side", loadFromProperties: "abstract/horizontalorientation" }
+	"variantgroups": [
+		{
+			"code": "side",
+			"loadFromProperties": "abstract/horizontalorientation"
+		}
 	],
 	"attributes": {
 		"fillAreaByType": {
-			"*-north": [
-				0.125, 0.25, 0.0625,
-				0.875, 0.875, 1.0
-			],
-			"*-south": [
-				0.125, 0.25, 0.0,
-				0.875, 0.875, 0.9375
-			],
-			"*-west": [
-				0.0625, 0.25, 0.125,
-				1.0, 0.875, 0.875
-			],
-			"*-east": [
-				0.0, 0.25, 0.125,
-				0.9375, 0.875, 0.875
+			"*-north": [0.125, 0.25, 0.0625, 0.875, 0.875, 1.0],
+			"*-south": [0.125, 0.25, 0.0, 0.875, 0.875, 0.9375],
+			"*-west": [0.0625, 0.25, 0.125, 1.0, 0.875, 0.875],
+			"*-east": [0.0, 0.25, 0.125, 0.9375, 0.875, 0.875]
+		},
+		"handbook": {
+			"groupBy": ["source-*"],
+			"extraSections": [
+				{
+					"title": "fieldsofsalt:handbooktitle-liquidtransfer",
+					"text": "fieldsofsalt:handbooktext-source"
+				}
 			]
 		}
 	},
@@ -31,16 +30,37 @@
 		"general": ["*-north"],
 		"decorative": ["*-north"]
 	},
-	shapebytype: {
-		"*-north": { base: "block/channel-s", rotateY: 90 },
-		"*-east": { base: "block/channel-s", rotateY: 0 },
-		"*-south": { base: "block/channel-s", rotateY: 270 },
-		"*-west": { base: "block/channel-s", rotateY: 180 },
+	"shapebytype": {
+		"*-north": { "base": "block/channel-s", "rotateY": 90 },
+		"*-east": { "base": "block/channel-s", "rotateY": 0 },
+		"*-south": { "base": "block/channel-s", "rotateY": 270 },
+		"*-west": { "base": "block/channel-s", "rotateY": 180 }
 	},
 	"blockmaterial": "Wood",
 	"replaceable": 550,
 	"resistance": 2,
+	"combustibleProps": {
+		"burnTemperature": 600,
+		"burnDuration": 30
+	},
+	"collisionselectionboxes": [
+		{ "x1": 0, "y1": 0, "z1": 0, "x2": 1, "y2": 0.9375, "z2": 1 }
+	],
 	"lightAbsorption": 0,
+	"sounds": {
+		"place": "block/planks",
+		"hit": "block/planks",
+		"break": "block/planks",
+		"walk": "walk/wood"
+	},
+	"heldTpIdleAnimation": "holdbothhandslarge",
+	"heldTpUseAnimation": "twohandplaceblock",
+	"sidesolid": {
+		"all": false
+	},
+	"sideopaque": {
+		"all": false
+	},
 	"groundTransform": {
 		"origin": {
 			"x": 0.5,
@@ -49,10 +69,9 @@
 		},
 		"scale": 2.5
 	},
-	"sidesolid": {
-		"all": false
-	},
-	"sideopaque": {
-		"all": false
+	"tpHandTransform": {
+		"translation": { "x": -1.23, "y": -0.91, "z": -0.8 },
+		"rotation": { "x": -2, "y": 25, "z": -78 },
+		"scale": 0.4
 	}
 }

@@ -125,17 +125,17 @@ namespace FieldsOfSalt.Items
 		{
 			if(toPos.X - fromPos.X < 4 || toPos.Z - fromPos.Z < 4)// to(4)-from(0) = 4
 			{
-				if(player != null) (api as ICoreServerAPI).SendIngameError(player, "fieldsofsalt:structuretoosmall");
+				if(player != null) (api as ICoreServerAPI).SendIngameError(player, "fieldsofsalt:template-toosmall");
 				return;
 			}
 			if((toPos.X - fromPos.X + 1) > template.MaxSize || (toPos.Z - fromPos.Z + 1) > template.MaxSize)
 			{
-				if(player != null) (api as ICoreServerAPI).SendIngameError(player, "fieldsofsalt:structuretoobig");
+				if(player != null) (api as ICoreServerAPI).SendIngameError(player, "fieldsofsalt:template-toobig");
 				return;
 			}
 			if(((toPos.X - fromPos.X) & 1) != 0 || ((toPos.Z - fromPos.Z) & 1) != 0)
 			{
-				if(player != null) (api as ICoreServerAPI).SendIngameError(player, "fieldsofsalt:structureoddsides");
+				if(player != null) (api as ICoreServerAPI).SendIngameError(player, "fieldsofsalt:template-oddsides");
 				return;
 			}
 
@@ -148,7 +148,7 @@ namespace FieldsOfSalt.Items
 					{
 						return false;
 					}
-					if(player != null) (api as ICoreServerAPI).SendIngameError(player, "fieldsofsalt:invalidbottomblock");
+					if(player != null) (api as ICoreServerAPI).SendIngameError(player, "fieldsofsalt:template-invalidbottom");
 					return true;
 				}
 			);
@@ -170,7 +170,7 @@ namespace FieldsOfSalt.Items
 				{
 					return false;
 				}
-				if(player != null) (api as ICoreServerAPI).SendIngameError(player, "fieldsofsalt:invalidborderblock");
+				if(player != null) (api as ICoreServerAPI).SendIngameError(player, "fieldsofsalt:template-invalidborder");
 				return true;
 			}
 			return false;

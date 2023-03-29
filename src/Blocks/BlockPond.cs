@@ -1,5 +1,6 @@
 ﻿using FieldsOfSalt.Blocks.Entities;
 using System;
+using System.Text;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
@@ -117,6 +118,18 @@ namespace FieldsOfSalt.Blocks
 			return GetPlacedBlockName(world, mainPos);
 		}
 
+		public override string GetPlacedBlockName(IWorldAccessor world, BlockPos pos)
+		{
+			var sb = new StringBuilder();
+			sb.Append(new ItemStack(this).GetName());
+			foreach(var bb in BlockBehaviors)
+			{
+				bb.GetPlacedBlockName(sb, world, pos);
+			}
+
+			return sb.ToString().TrimEnd();
+		}
+
 		public string GetPlacedBlockInfo(IWorldAccessor world, BlockPos mainPos, BlockPos partPos, IPlayer forPlayer)
 		{
 			return GetPlacedBlockInfo(world, mainPos, forPlayer);
@@ -164,6 +177,21 @@ namespace FieldsOfSalt.Blocks
 				if(block != null) return block.GetCollisionBoxes(blockAccessor, partPos);
 			}
 			return base.GetCollisionBoxes(blockAccessor, mainPos);
+		}
+
+		public override int GetRandomColor(ICoreClientAPI capi, BlockPos pos, BlockFacing facing, int rndIndex = -1)
+		{
+			return GetRandomColor(capi, pos, pos, facing, rndIndex);
+		}
+
+		public int GetRandomColor(ICoreClientAPI capi, BlockPos mainPos, BlockPos partPos, BlockFacing facing, int rndIndex = -1)
+		{
+			if(capi.World.BlockAccessor.GetBlockEntity(mainPos) is BlockEntityPond pond)
+			{
+				var block = pond.GetPartBlockAt(partPos);
+				if(block != null) return block.GetRandomColor(capi, partPos, facing, rndIndex);
+			}
+			return base.GetRandomColor(capi, mainPos, facing, rndIndex);
 		}
 	}
 }
