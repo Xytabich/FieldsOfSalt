@@ -1,4 +1,4 @@
-# FieldsOfSalt
+# Fields of Salt
 
 Mod adds an evaporation pond to the game, which makes possible to evaporate liquids to obtain resources.
 
