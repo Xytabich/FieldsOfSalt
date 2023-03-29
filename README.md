@@ -2,6 +2,8 @@
 
 Mod adds an evaporation pond to the game, which makes possible to evaporate liquids to obtain resources.
 
+Mod page: https://mods.vintagestory.at/fieldsofsalt
+
 ### Adding recipe
 It is possible to add custom pond recipes, [salt.json](https://github.com/Xytabich/FieldsOfSalt/blob/master/assets/fieldsofsalt/recipes/evaporationpond/salt.json) can be used as an example.
 ```
