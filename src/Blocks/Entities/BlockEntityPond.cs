@@ -381,6 +381,8 @@ namespace FieldsOfSalt.Blocks.Entities
 		public void OnBlockInteract(IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel)
 		{
 			if(Api.Side != EnumAppSide.Server) return;
+			if(byPlayer == null) return;
+
 			var slot = byPlayer.Entity.ActiveHandItemSlot;
 			if(slot?.Itemstack?.Collectible.Tool == EnumTool.Hoe)
 			{
@@ -400,6 +402,31 @@ namespace FieldsOfSalt.Blocks.Entities
 					MarkDirty(true);
 
 					slot.Itemstack.Collectible.DamageItem(world, byPlayer.Entity, slot);
+				}
+			}
+			else if(slot?.Itemstack?.Collectible is ILiquidSource source)
+			{
+				if(source.AllowHeldLiquidTransfer)
+				{
+					var contentStackToMove = source.GetContent(slot.Itemstack);
+					if(contentStackToMove != null)
+					{
+						var props = BlockLiquidContainerBase.GetContainableProps(contentStackToMove);
+						if(props != null)
+						{
+							var stack = contentStackToMove.Clone();
+							stack.StackSize = Math.Min(contentStackToMove.StackSize, (int)((byPlayer.WorldData.EntityControls.ShiftKey ? source.CapacityLitres : source.TransferSizeLitres) * props.ItemsPerLitre));
+							if(stack.StackSize > 0 && TryAccept(Api.World.BlockAccessor, Pos, BlockFacing.UP, ref stack))
+							{
+								if(stack.StackSize > 0)
+								{
+									source.TryTakeContent(slot.Itemstack, stack.StackSize);
+									DoLiquidMovedEffects(byPlayer, stack, props);
+									slot.MarkDirty();
+								}
+							}
+						}
+					}
 				}
 			}
 		}
@@ -469,6 +496,14 @@ namespace FieldsOfSalt.Blocks.Entities
 
 		public void SetLiquidLevel(IBlockAccessor blockAccessor, BlockPos pos, BlockFacing face, int level, WaterTightContainableProps liquidProps)
 		{
+		}
+
+		private void DoLiquidMovedEffects(IPlayer player, ItemStack contentStack, WaterTightContainableProps props)
+		{
+			float litresMoved = (float)contentStack.StackSize / props.ItemsPerLitre;
+			(player as IClientPlayer)?.TriggerFpAnimation(EnumHandInteract.HeldItemInteract);
+			Api.World.PlaySoundAt(props.PourSound, player.Entity, player, true, 16f, GameMath.Clamp(litresMoved / 5f, 0.35f, 1f));
+			Api.World.SpawnCubeParticles(player.Entity.Pos.AheadCopy(0.25).XYZ.Add(0.0, player.Entity.SelectionBox.Y2 / 2f, 0.0), contentStack, 0.75f, (int)litresMoved * 2, 0.45f);
 		}
 
 		private WorldInteraction[] GetPickInteractionHelp()
