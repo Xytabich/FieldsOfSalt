@@ -1,0 +1,36 @@
+{
+	"ingredientPattern": "HS_,CPP,R__",
+	"ingredients": {
+		"P": {
+			"type": "item",
+			"code": "game:plank-*"
+		},
+		"R": {
+			"name": "rock",
+			"type": "block",
+			"code": "game:rockpolished-*"
+		},
+		"C": {
+			"type": "item",
+			"code": "game:chisel-*",
+			"isTool": true
+		},
+		"H": {
+			"type": "item",
+			"code": "game:hammer-*",
+			"isTool": true
+		},
+		"S": {
+			"type": "item",
+			"code": "game:saw-*",
+			"isTool": true
+		}
+	},
+	"width": 3,
+	"height": 3,
+	"output": {
+		"type": "block",
+		"code": "connector-{rock}-ns",
+		"quantity": 1
+	}
+}

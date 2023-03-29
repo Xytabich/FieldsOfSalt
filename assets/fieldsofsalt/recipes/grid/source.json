@@ -1,0 +1,24 @@
+{
+	"ingredientPattern": "TTT,P_P,PSP",
+	"ingredients": {
+		"P": {
+			"type": "item",
+			"code": "game:plank-*"
+		},
+		"S": {
+			"type": "block",
+			"code": "game:plankslab-*"
+		},
+		"T": {
+			"type": "item",
+			"code": "game:stick"
+		}
+	},
+	"width": 3,
+	"height": 3,
+	"output": {
+		"type": "block",
+		"code": "source-north",
+		"quantity": 1
+	}
+}

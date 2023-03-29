@@ -1,0 +1,25 @@
+{
+	"ingredientPattern": "PB,C_",
+	"ingredients": {
+		"P": {
+			"type": "item",
+			"code": "game:paper-*"
+		},
+		"C": {
+			"type": "block",
+			"code": "connector-*",
+			"quantity": 0
+		},
+		"B": {
+			"type": "item",
+			"code": "game:charcoal"
+		}
+	},
+	"width": 2,
+	"height": 2,
+	"output": {
+		"type": "item",
+		"code": "pondtemplate",
+		"quantity": 1
+	}
+}
