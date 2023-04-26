@@ -1,0 +1,54 @@
+{
+	// Japanese localization file for 'Fields of Salt'.
+	// Mod Version: v1.1.0
+	// Translated By: Macoto Hino
+	// Machine translation using PCOT and DeepL.
+	
+	"fieldsofsalt:block-connector-bauxite-*": "蒸発池の接続部(ボーキサイト)",
+	"fieldsofsalt:block-connector-whitemarble-*": "蒸発池の接続部(白色大理石)",
+	"fieldsofsalt:block-connector-greenmarble-*": "蒸発池の接続部(緑色大理石)",
+	"fieldsofsalt:block-connector-redmarble-*": "蒸発池の接続部(桃白色大理石)",
+	"fieldsofsalt:block-connector-chert-*": "蒸発池の接続部(チャート石)",
+	"fieldsofsalt:block-connector-conglomerate-*": "蒸発池の接続部(礫岩)",
+	"fieldsofsalt:block-connector-limestone-*": "蒸発池の接続部(石灰岩)",
+	"fieldsofsalt:block-connector-peridotite-*": "蒸発池の接続部(かんらん岩)",
+	"fieldsofsalt:block-connector-phyllite-*": "蒸発池の接続部(千枚岩)",
+	"fieldsofsalt:block-connector-slate-*": "蒸発池の接続部(粘板岩)",
+	"fieldsofsalt:block-connector-basalt-*": "蒸発池の接続部(玄武岩)",
+	"fieldsofsalt:block-connector-andesite-*": "蒸発池の接続部(安山岩)",
+	"fieldsofsalt:block-connector-chalk-*": "蒸発池の接続部(チョーク石)",
+	"fieldsofsalt:block-connector-claystone-*": "蒸発池の接続部(粘土岩)",
+	"fieldsofsalt:block-connector-granite-*": "蒸発池の接続部(花崗岩)",
+	"fieldsofsalt:block-connector-sandstone-*": "蒸発池の接続部(砂岩)",
+	"fieldsofsalt:block-connector-shale-*": "蒸発池の接続部(泥板岩)",
+	"fieldsofsalt:block-connector-suevite-*": "蒸発池の接続部(スエバイト)",
+	"fieldsofsalt:block-connector-kimberlite-*": "蒸発池の接続部(キンバーライト)",
+	"fieldsofsalt:block-connector-*": "蒸発池の接続部",
+
+	"fieldsofsalt:block-pondmain": "蒸発池",
+	"fieldsofsalt:block-channel-*": "水路",
+	"fieldsofsalt:block-source-*": "水門",
+
+	"fieldsofsalt:item-pondtemplate": "蒸発池(テンプレート)",
+
+	"fieldsofsalt:handbooktitle-pond": "蒸発池",
+	"fieldsofsalt:handbooktext-pondtemplate": "池の中で液体が蒸発して資源を得られるが、蒸発速度は周囲の温度に依存する。クワで沈殿物を掻き出す。\n\n池の角ブロックに使用すると、蒸発池を構造出来る。\n池の底は磨かれた石のハーフブロックで覆い、縁は硬い磨かれた石、または接続部で構成する。接続部は外側に向ける必要がある。",
+
+	"fieldsofsalt:handbooktitle-liquidtransfer": "液体の輸送について",
+	"fieldsofsalt:handbooktext-connector": "水路から液体を受け取り、池を水で満たす。",
+	"fieldsofsalt:handbooktext-source": "水源から液体を受け取り、水路を通じて蒸発池の接続部に輸送する。",
+
+	"fieldsofsalt:pond-result": "成果を受け取る",
+
+	"fieldsofsalt:Obtained by evaporation": "蒸発により取得",
+	"fieldsofsalt:{0}x evaporating": "{0}xの蒸発",
+	"fieldsofsalt:within {0} hours": "{0}時間以内に",
+
+	"fieldsofsalt:template-selectcorners": "角を選択",
+
+	"ingameerror-fieldsofsalt:template-toosmall": "選択範囲が小さ過ぎます",
+	"ingameerror-fieldsofsalt:template-toobig": "選択範囲が大き過ぎます",
+	"ingameerror-fieldsofsalt:template-oddsides": "選択範囲は奇数である必要があります",
+	"ingameerror-fieldsofsalt:template-invalidbottom": "底面ブロックが無効です",
+	"ingameerror-fieldsofsalt:template-invalidborder": "縁ブロックが無効です"
+}
