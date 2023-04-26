@@ -1,10 +1,14 @@
 ﻿using FieldsOfSalt.Blocks;
 using FieldsOfSalt.Blocks.Entities;
+using FieldsOfSalt.Handbook;
 using FieldsOfSalt.Items;
 using FieldsOfSalt.Recipes;
 using FieldsOfSalt.Renderer;
+using HarmonyLib;
 using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
@@ -21,6 +25,9 @@ namespace FieldsOfSalt
 		private RecipeRegistryGeneric<EvaporationRecipe> pondRecipes;
 
 		private TemplateAreaRenderer templateAreaRenderer = null;
+
+		private Harmony harmony = null;
+		private List<IDisposable> handbookInfoList = null;
 
 		public override double ExecuteOrder()
 		{
@@ -47,6 +54,20 @@ namespace FieldsOfSalt
 		public override void StartClientSide(ICoreClientAPI api)
 		{
 			base.StartClientSide(api);
+
+			try
+			{
+				harmony = new Harmony("fieldsofsalt");
+				harmony.PatchAll(typeof(FieldsOfSaltMod).Assembly);
+			}
+			catch(Exception e)
+			{
+				api.Logger.Error(e.Message);
+			}
+
+			handbookInfoList = new List<IDisposable>();
+			handbookInfoList.Add(new EvaporationInfo(this));
+
 			templateAreaRenderer = new TemplateAreaRenderer(api);
 		}
 
@@ -94,6 +115,26 @@ namespace FieldsOfSalt
 		{
 			base.Dispose();
 			templateAreaRenderer?.Dispose();
+
+			if(handbookInfoList != null)
+			{
+				foreach(var info in handbookInfoList)
+				{
+					info.Dispose();
+				}
+			}
+			harmony?.UnpatchAll("fieldsofsalt");
+		}
+
+		public void GetRecipesByOutput(ItemStack itemstack, ICollection<EvaporationRecipe> outItems)
+		{
+			foreach(var recipe in pondRecipes.Recipes)
+			{
+				if(recipe.Enabled && recipe.Output.ResolvedItemstack.Satisfies(itemstack))
+				{
+					outItems.Add(recipe);
+				}
+			}
 		}
 
 		public bool TryGetRecipe(ItemStack forLiquid, out EvaporationRecipe evaporationRecipe)

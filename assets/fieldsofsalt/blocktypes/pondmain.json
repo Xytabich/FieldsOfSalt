@@ -4,7 +4,8 @@
 	"entityclass": "fieldsofsalt:pond",
 	"shape": { "base": "game:block/basic/cube" },
 	"attributes": {
-		"templateItem": "pondtemplate"
+		"templateItem": "pondtemplate",
+		"cellLiquidCapacity": "3.5"
 	},
 	"replaceable": 100,
 	"sideOpaque": {

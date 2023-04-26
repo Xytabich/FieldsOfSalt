@@ -9,6 +9,15 @@ namespace FieldsOfSalt.Blocks
 {
 	public class BlockPond : Block, IMultiblockMainBlock, IMultiblockPhantomBlock
 	{
+		public double CellCapacity;
+
+		public override void OnLoaded(ICoreAPI api)
+		{
+			base.OnLoaded(api);
+
+			CellCapacity = Attributes?["cellLiquidCapacity"].AsDouble(0.5) ?? 0.5;
+		}
+
 		public override bool OnBlockInteractStart(IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel)
 		{
 			return OnBlockInteractStart(world, byPlayer, blockSel.Position, blockSel);

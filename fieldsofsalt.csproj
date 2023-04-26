@@ -34,6 +34,12 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="0Harmony">
+      <HintPath>..\..\..\Games\Vintagestory18\Lib\0Harmony.dll</HintPath>
+    </Reference>
+    <Reference Include="cairo-sharp">
+      <HintPath>..\..\..\Games\Vintagestory18\Lib\cairo-sharp.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -86,6 +92,10 @@
     <Compile Include="src\Blocks\ILiquidConnectable.cs" />
     <Compile Include="src\Blocks\IMultiblockMainBlock.cs" />
     <Compile Include="src\FieldsOfSaltMod.cs" />
+    <Compile Include="src\HandbookPatcher\HandbookItemInfoEvent.cs" />
+    <Compile Include="src\HandbookPatcher\HandbookItemInfoPatch.cs" />
+    <Compile Include="src\HandbookPatcher\HandbookItemInfoSection.cs" />
+    <Compile Include="src\Handbook\EvaporationInfo.cs" />
     <Compile Include="src\Items\ItemPondTemplate.cs" />
     <Compile Include="src\Recipes\EvaporationRecipe.cs" />
     <Compile Include="src\Renderer\TemplateAreaRenderer.cs" />

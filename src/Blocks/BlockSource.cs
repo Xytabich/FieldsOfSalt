@@ -10,6 +10,7 @@ namespace FieldsOfSalt.Blocks
 	public class BlockSource : Block, ILiquidChannel
 	{
 		public BlockFacing Face;
+		public float LitresPerTickGeneration;
 
 		private Cuboidf fillArea;
 
@@ -17,6 +18,7 @@ namespace FieldsOfSalt.Blocks
 		{
 			base.OnLoaded(api);
 			Face = BlockFacing.FromCode(Variant["side"]);
+			LitresPerTickGeneration = Attributes?["genLitres"].AsFloat(0.01f) ?? 0.01f;
 
 			fillArea = new Cuboidf();
 			float[] bb = Attributes?["fillArea"].AsArray<float>();

@@ -27,13 +27,17 @@
 	"fieldsofsalt:item-pondtemplate": "Evaporation pond (Template)",
 
 	"fieldsofsalt:handbooktitle-pond": "Evaporation pond",
-	"fieldsofsalt:handbooktext-pondtemplate": "The liquid evaporates in the pond to obtain resources, the evaporation rate depends on the ambient temperature.\n\nUse on corner blocks to create structure.\nThe bottom of the pond should be covered with slabs of any polished stone, the edges may consist of solid polished stone or a connector. The connector must face outwards.",
+	"fieldsofsalt:handbooktext-pondtemplate": "The liquid evaporates in the pond to obtain resources, the evaporation rate depends on the ambient temperature. Use a hoe to scrape the sediment.\n\nTo create a structure, use the template on the corner blocks.\nThe bottom of the pond should be covered with slabs of any polished stone, the edges may consist of solid polished stone or a connector. The connector must face outwards.",
 
 	"fieldsofsalt:handbooktitle-liquidtransfer": "Liquid transportation",
 	"fieldsofsalt:handbooktext-connector": "Receives liquid from the channels and fills the pond with it.",
 	"fieldsofsalt:handbooktext-source": "Receives liquid from the liquid source block and transfers it to recipients through channels.",
 
 	"fieldsofsalt:pond-result": "Collect result",
+
+	"fieldsofsalt:Obtained by evaporation": "Obtained by evaporation",
+	"fieldsofsalt:{0}x evaporating": "{0}x evaporating",
+	"fieldsofsalt:within {0} hours": "within {0} hours",
 
 	"ingameerror-fieldsofsalt:template-selectcorners": "Select corners",
 	"ingameerror-fieldsofsalt:template-toosmall": "Selection too small",

@@ -22,6 +22,7 @@ namespace FieldsOfSalt.Blocks.Entities
 		private int fillLevel = 0;
 
 		private BlockFacing face;
+		private BlockSource blockSource;
 
 		private FieldsOfSaltMod mod;
 		private ConcurrentDictionary<Xyz, SinkInfo> sinks = new ConcurrentDictionary<Xyz, SinkInfo>();
@@ -33,7 +34,8 @@ namespace FieldsOfSalt.Blocks.Entities
 
 		public override void Initialize(ICoreAPI api)
 		{
-			face = ((BlockSource)Block).Face;
+			blockSource = (BlockSource)Block;
+			face = blockSource.Face;
 			base.Initialize(api);
 			mod = api.ModLoader.GetModSystem<FieldsOfSaltMod>();
 
@@ -170,7 +172,7 @@ namespace FieldsOfSalt.Blocks.Entities
 			RegisterMultiblock(0, channelLine.Length);
 			if(channelLine.Length == 0)
 			{
-				((BlockSource)Block).GetConnectedSinks(accessor, Pos, addSinkCallback);
+				blockSource.GetConnectedSinks(accessor, Pos, addSinkCallback);
 			}
 			UpdateLiquidBlock(Api.World.BlockAccessor);
 
@@ -266,7 +268,7 @@ namespace FieldsOfSalt.Blocks.Entities
 				fillLevels[side.Opposite.Index] = Math.Min(level, 7);
 
 				tmpMesh.Clear();
-				((BlockSource)Block).GenLiquidMesh(accessor, Pos, tmpMesh, fillLevels);
+				blockSource.GenLiquidMesh(accessor, Pos, tmpMesh, fillLevels);
 				if(tmpMesh.VerticesCount > 0)
 				{
 					//for(int j = 0; j < tmpMesh.VerticesCount; j++)//TODO: color doesn't work?
@@ -408,7 +410,7 @@ namespace FieldsOfSalt.Blocks.Entities
 				}
 				var accessor = Api.World.BlockAccessor;
 				var tmpPos = new BlockPos();
-				int stackSize = (int)Math.Ceiling(liquidProps.ItemsPerLitre * 0.01f);
+				int stackSize = (int)Math.Ceiling(liquidProps.ItemsPerLitre * blockSource.LitresPerTickGeneration);
 				foreach(var pair in sinks)
 				{
 					var pos = pair.Key;

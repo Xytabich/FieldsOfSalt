@@ -38,6 +38,7 @@ namespace FieldsOfSalt.Blocks.Entities
 		// Calculated
 		private int evaporationArea = 0;
 		private int liquidCapacity = 0;
+		private double layerLiquidCapacity = 0.5 / 15;
 
 		private bool markDirtyNext = false;
 		private bool removeInvalidStructure = false;
@@ -57,6 +58,9 @@ namespace FieldsOfSalt.Blocks.Entities
 		public override void Initialize(ICoreAPI api)
 		{
 			base.Initialize(api);
+
+			layerLiquidCapacity = ((BlockPond)Block).CellCapacity / 15;
+
 			mod = api.ModLoader.GetModSystem<FieldsOfSaltMod>();
 			if(removeInvalidStructure)
 			{
@@ -693,7 +697,7 @@ namespace FieldsOfSalt.Blocks.Entities
 
 		private void CalculateLiquidCapacity(int layersUsedByOutput)
 		{
-			double volumeForLiquid = ((size.X - 2) * (size.Y - 2) * 15 - layersUsedByOutput) * (1.0 / 30);
+			double volumeForLiquid = ((size.X - 2) * (size.Y - 2) * 15 - layersUsedByOutput) * layerLiquidCapacity;
 			liquidCapacity = (int)Math.Ceiling(volumeForLiquid * (double)recipe.InputProps.ItemsPerLitre);
 		}
 

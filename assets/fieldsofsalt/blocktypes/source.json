@@ -17,14 +17,15 @@
 			"*-east": [0.0, 0.25, 0.125, 0.9375, 0.875, 0.875]
 		},
 		"handbook": {
-			"groupBy": ["source-*"],
+			"groupBy": [ "source-*" ],
 			"extraSections": [
 				{
 					"title": "fieldsofsalt:handbooktitle-liquidtransfer",
 					"text": "fieldsofsalt:handbooktext-source"
 				}
 			]
-		}
+		},
+		"genLitres": 0.04
 	},
 	"creativeinventory": {
 		"general": ["*-north"],
