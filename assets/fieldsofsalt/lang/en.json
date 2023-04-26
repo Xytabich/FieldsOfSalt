@@ -39,7 +39,8 @@
 	"fieldsofsalt:{0}x evaporating": "{0}x evaporating",
 	"fieldsofsalt:within {0} hours": "within {0} hours",
 
-	"ingameerror-fieldsofsalt:template-selectcorners": "Select corners",
+	"fieldsofsalt:template-selectcorners": "Select corners",
+
 	"ingameerror-fieldsofsalt:template-toosmall": "Selection too small",
 	"ingameerror-fieldsofsalt:template-toobig": "Selection too big",
 	"ingameerror-fieldsofsalt:template-oddsides": "Selection must be odd",
