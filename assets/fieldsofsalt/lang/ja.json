@@ -34,6 +34,9 @@
 	"fieldsofsalt:handbooktitle-pond": "蒸発池",
 	"fieldsofsalt:handbooktext-pondtemplate": "池の中で液体が蒸発して資源を得られるが、蒸発速度は周囲の温度に依存する。クワで沈殿物を掻き出す。\n\n池の角ブロックに使用すると、蒸発池を構造出来る。\n池の底は磨かれた石のハーフブロックで覆い、縁は硬い磨かれた石、または接続部で構成する。接続部は外側に向ける必要がある。",
 
+	"fieldsofsalt:craftinginfo-evaporation-title": "Fields of Salt: 塩の蒸発",
+	"fieldsofsalt:craftinginfo-evaporation-text": "<strong>塩の蒸発</strong><br><i>乾燥槽</i><br><br>蒸発は最も単純なプロセスの1つで、それほど苦労せずに資源を得ることが出来る。しかし同時に、最も時間が掛かり、結果が出るまでに数日、数週間を要する。その為、最大の効果を得るには、広大な敷地を蒸発池で完全に覆い尽くすことが必要だ。また、蒸発池は塩の生産に使われることが多い為、「塩の畑」と呼ばれるようになった。<br><br>海水から塩の生産を始めるには、蒸発池が必要だ。 無垢の磨かれた石を縁取りとして使い、磨かれた石のハーフブロックを底に敷いて作成することが出来る。次に、<a href=\"handbook://item-fieldsofsalt:pondtemplate\">テンプレート</a>ですべてを確認し、蒸発池の準備は完了だ！<br>ただ、常にバケツで水を入れるのは至難の業のようで、水路に溜まった水を使い、直接入れることが出来る。<br>ゴミや生き物を濾過する<a href=\"handbook://block-fieldsofsalt:source-north\">水門</a>を設置したら、そこから蒸発池の<a href=\"handbook://block-fieldsofsalt:connector-granite-ns\">接続部</a>に<a href=\"handbook://block-fieldsofsalt:channel-ns\">水路</a>を敷設する。これで池は常に海水で満たされる。<br>しばらく待つと、底に沈殿物が溜まっているのが見えるはず。これを何かで削り取るのだが、クワでも十分採取出来る。",
+
 	"fieldsofsalt:handbooktitle-liquidtransfer": "液体の輸送について",
 	"fieldsofsalt:handbooktext-connector": "水路から液体を受け取り、池を水で満たす。",
 	"fieldsofsalt:handbooktext-source": "水源から液体を受け取り、水路を通じて蒸発池の接続部に輸送する。",
