@@ -1,0 +1,52 @@
+{
+	"fieldsofsalt:block-connector-bauxite-*": "Conector de piscina de evaporação (Bauxita)",
+	"fieldsofsalt:block-connector-whitemarble-*": "Conector de piscina de evaporação (Mármore branco)",
+	"fieldsofsalt:block-connector-greenmarble-*": "Conector de piscina de evaporação (Mármore verde)",
+	"fieldsofsalt:block-connector-redmarble-*": "Conector de piscina de evaporação (Mármore rosa)",
+	"fieldsofsalt:block-connector-chert-*": "Conector de piscina de evaporação (Cherte)",
+	"fieldsofsalt:block-connector-conglomerate-*": "Conector de piscina de evaporação (Conglomerado)",
+	"fieldsofsalt:block-connector-limestone-*": "Conector de piscina de evaporação (Calcário)",
+	"fieldsofsalt:block-connector-peridotite-*": "Conector de piscina de evaporação (Peridotito)",
+	"fieldsofsalt:block-connector-phyllite-*": "Conector de piscina de evaporação (Filito)",
+	"fieldsofsalt:block-connector-slate-*": "Conector de piscina de evaporação (Ardósia)",
+	"fieldsofsalt:block-connector-basalt-*": "Conector de piscina de evaporação (Basalto)",
+	"fieldsofsalt:block-connector-andesite-*": "Conector de piscina de evaporação (Andesito)",
+	"fieldsofsalt:block-connector-chalk-*": "Conector de piscina de evaporação (Giz)",
+	"fieldsofsalt:block-connector-claystone-*": "Conector de piscina de evaporação (Argilito)",
+	"fieldsofsalt:block-connector-granite-*": "Conector de piscina de evaporação (Granito)",
+	"fieldsofsalt:block-connector-sandstone-*": "Conector de piscina de evaporação (Arenito)",
+	"fieldsofsalt:block-connector-shale-*": "Conector de piscina de evaporação (Xisto)",
+	"fieldsofsalt:block-connector-suevite-*": "Conector de piscina de evaporação (Suevita)",
+	"fieldsofsalt:block-connector-kimberlite-*": "Conector de piscina de evaporação (Kimberlito)",
+	"fieldsofsalt:block-connector-*": "Conector de piscina de evaporação",
+
+	"fieldsofsalt:block-pondmain": "Piscina de evaporação",
+	"fieldsofsalt:block-channel-*": "Canal para líquidos",
+	"fieldsofsalt:block-source-*": "Calha Concentradora",
+
+	"fieldsofsalt:item-pondtemplate": "Piscina de evaporação (Modelo)",
+
+	"fieldsofsalt:handbooktitle-pond": "Piscina de evaporação",
+	"fieldsofsalt:handbooktext-pondtemplate": "O líquido evapora na piscina para obter recursos, a taxa de evaporação depende da temperatura ambiente.\n\nUse em blocos de canto para criar estrutura.\nO fundo da piscina deve ser coberta com lajes de pedra polida, os cantos consistem de pedra polida sólida ou um conector.\nO conector precisa estar virado para fora.",
+
+	"fieldsofsalt:craftinginfo-evaporation-title": "Campos de Sal: Evaporação",
+	"fieldsofsalt:craftinginfo-evaporation-text": "<strong>Evaporação de sal</strong><br><i>Bacias de secagem</i><br><br>Evaporação é um dos processos mais simples, possibilitando que você consiga recursos sem muita dificuldade. Mas ao mesmo tempo, um dos que mais consomem tempo, sendo necessário dias e semanas para conseguir resultados. Portanto, grandes áreas completamente cobertas com piscinas de evaporação são usadas para obter os maiores benefícios. E como piscinas de evaporação eram comumente usadas para produzir sal, estes lugares eram conhecidos como Campos de Sal.<br><br>Para começar a produzir sal de água do mar, você precisará de piscinas de evaporação. Você pode criá-las usando blocos inteiros de pedra polida como uma borda, e preenchendo o fundo com lajes de pedra polida. A seguir, você precisa checar tudo com o <a href=\"handbook://item-fieldsofsalt:pondtemplate\">modelo</a>, e a piscina está pronta!<br>Mas ela parece bem complicada de encher constantemente com um balde, então você pode usar o sistema de canais para encher diretamente do reservatório.<br>Tendo colocado uma <a href=\"handbook://block-fieldsofsalt:source-north\">calha concentradora</a> para filtrar plantas, terra e seres vivos, traga <a href=\"handbook://block-fieldsofsalt:channel-ns\">canais</a> dela para as <a href=\"handbook://block-fieldsofsalt:connector-granite-ns\">ranhuras</a> na piscina. E agora sua piscina estará constantemente cheia de água do mar.<br>Depois de esperar por algum tempo, você poderá ver que há sedimento se acumulando no fundo. Agora você precisa raspá-lo com alguma coisa, muito provavelmente uma enxada será suficiente.",
+
+	"fieldsofsalt:handbooktitle-liquidtransfer": "Transporte de líquidos",
+	"fieldsofsalt:handbooktext-connector": "Recebe líquido dos canais e enche a piscina com ele.",
+	"fieldsofsalt:handbooktext-source": "Recebe líquido do bloco de origem líquido e transfere para recipientes através de canais.",
+
+	"fieldsofsalt:pond-result": "Coletar resultado",
+
+	"fieldsofsalt:Obtained by evaporation": "Obtido por evaporação",
+	"fieldsofsalt:{0}x evaporating": "{0}x evaporando",
+	"fieldsofsalt:within {0} hours": "dentro de {0} horas",
+
+	"fieldsofsalt:template-selectcorners": "Selecionar cantos",
+
+	"ingameerror-fieldsofsalt:template-toosmall": "Seleção pequena demais",
+	"ingameerror-fieldsofsalt:template-toobig": "Seleção grande demais",
+	"ingameerror-fieldsofsalt:template-oddsides": "Seleção deve ser ímpar",
+	"ingameerror-fieldsofsalt:template-invalidbottom": "Blocos de fundo inválidos",
+	"ingameerror-fieldsofsalt:template-invalidborder": "Blocos de corntorno inválidos"
+}
