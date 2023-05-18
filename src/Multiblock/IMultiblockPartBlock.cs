@@ -1,4 +1,4 @@
-﻿namespace FieldsOfSalt.Blocks
+﻿namespace FieldsOfSalt.Multiblock
 {
 	public interface IMultiblockPartBlock
 	{

@@ -1,4 +1,5 @@
-﻿using FieldsOfSalt.Recipes;
+﻿using FieldsOfSalt.Multiblock;
+using FieldsOfSalt.Recipes;
 using FieldsOfSalt.Utils;
 using System;
 using System.Collections.Generic;
@@ -52,6 +53,7 @@ namespace FieldsOfSalt.Blocks.Entities
 
 		private bool multiblockRegistered = false;
 		private FieldsOfSaltMod mod;
+		private MultiblockManager multiblockManager;
 
 		private WorldInteraction[] pickInteractionHelp = null;
 
@@ -62,9 +64,10 @@ namespace FieldsOfSalt.Blocks.Entities
 			layerLiquidCapacity = ((BlockPond)Block).CellCapacity / 15;
 
 			mod = api.ModLoader.GetModSystem<FieldsOfSaltMod>();
+			multiblockManager = api.ModLoader.GetModSystem<MultiblockManager>();
 			if(removeInvalidStructure)
 			{
-				mod.RemoveReferenceToMainBlock(Pos, Pos);
+				multiblockManager.RemoveReferenceToMainBlock(Pos, Pos);
 				Api.Logger.Warning("Received invalid multiblock structure from tree attributes, block at {0} will be removed", Pos);
 				Api.World.BlockAccessor.SetBlock(0, Pos);
 				return;
@@ -176,7 +179,7 @@ namespace FieldsOfSalt.Blocks.Entities
 				removeInvalidStructure = true;
 				if(Api != null)
 				{
-					mod.RemoveReferenceToMainBlock(Pos, Pos);
+					multiblockManager.RemoveReferenceToMainBlock(Pos, Pos);
 					Api.Logger.Warning("Received invalid multiblock structure from tree attributes, block at {0} will be removed", Pos);
 					Api.World.BlockAccessor.SetBlock(0, Pos);
 					return;
@@ -356,7 +359,7 @@ namespace FieldsOfSalt.Blocks.Entities
 					tmpPos.X = xp;
 
 					int index = grid[y + x];
-					if(mod.RemoveReferenceToMainBlock(tmpPos, Pos) && index != ushort.MaxValue)
+					if(multiblockManager.RemoveReferenceToMainBlock(tmpPos, Pos) && index != ushort.MaxValue)
 					{
 						if(accessor.GetBlock(tmpPos) is IMultiblockPhantomBlock)
 						{
@@ -713,7 +716,7 @@ namespace FieldsOfSalt.Blocks.Entities
 			var accessor = Api.World.BlockAccessor;
 			bool RegisterBlock(BlockPos tmpPos)
 			{
-				mod.AddReferenceToMainBlock(tmpPos, Pos);
+				multiblockManager.AddReferenceToMainBlock(tmpPos, Pos);
 				accessor.MarkBlockDirty(tmpPos);
 				return false;
 			}
@@ -730,7 +733,7 @@ namespace FieldsOfSalt.Blocks.Entities
 						channel.AddSink(accessor, channelPos, face.Opposite, this);
 					}
 				}
-				mod.AddReferenceToMainBlock(tmpPos, Pos);
+				multiblockManager.AddReferenceToMainBlock(tmpPos, Pos);
 				accessor.MarkBlockDirty(tmpPos);
 				return false;
 			}
@@ -748,12 +751,12 @@ namespace FieldsOfSalt.Blocks.Entities
 
 			bool UnregisterBlock(BlockPos tmpPos)
 			{
-				mod.RemoveReferenceToMainBlock(tmpPos, Pos);
+				multiblockManager.RemoveReferenceToMainBlock(tmpPos, Pos);
 				return false;
 			}
 			bool UnregisterBorderBlock(BlockPos tmpPos, BlockFacing face)
 			{
-				mod.RemoveReferenceToMainBlock(tmpPos, Pos);
+				multiblockManager.RemoveReferenceToMainBlock(tmpPos, Pos);
 				return false;
 			}
 			IterateStructureBlocks(fromPos, toPos, UnregisterBorderBlock, UnregisterBlock);

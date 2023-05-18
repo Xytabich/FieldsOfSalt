@@ -1,4 +1,5 @@
-﻿using Vintagestory.API.Common;
+﻿using FieldsOfSalt.Multiblock;
+using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 
 namespace FieldsOfSalt.Blocks
@@ -7,12 +8,12 @@ namespace FieldsOfSalt.Blocks
 	{
 		private EnumAxis axis;
 
-		private FieldsOfSaltMod mod;
+		private MultiblockManager manager;
 
 		public override void OnLoaded(ICoreAPI api)
 		{
 			base.OnLoaded(api);
-			mod = api.ModLoader.GetModSystem<FieldsOfSaltMod>();
+			manager = api.ModLoader.GetModSystem<MultiblockManager>();
 			axis = Variant["side"] == "we" ? EnumAxis.X : EnumAxis.Z;
 		}
 
@@ -26,7 +27,7 @@ namespace FieldsOfSalt.Blocks
 			base.OnBlockRemoved(world, pos);
 
 			var mainPos = new BlockPos();
-			if(mod.GetReferenceToMainBlock(pos, mainPos))
+			if(manager.GetReferenceToMainBlock(pos, mainPos))
 			{
 				if(world.BlockAccessor.GetBlock(mainPos) is IMultiblockMainBlock main)
 				{
@@ -38,7 +39,7 @@ namespace FieldsOfSalt.Blocks
 		public ILiquidSink GetLiquidSink(IBlockAccessor blockAccessor, BlockPos pos, BlockFacing face)
 		{
 			var mainPos = new BlockPos();
-			if(mod.GetReferenceToMainBlock(pos, mainPos))
+			if(manager.GetReferenceToMainBlock(pos, mainPos))
 			{
 				if(blockAccessor.GetBlockEntity(mainPos) is ILiquidSink sink)
 				{

@@ -1,4 +1,5 @@
 ﻿using FieldsOfSalt.Blocks.Entities;
+using FieldsOfSalt.Multiblock;
 using FieldsOfSalt.Utils;
 using System;
 using System.Runtime.CompilerServices;
@@ -20,13 +21,13 @@ namespace FieldsOfSalt.Blocks
 
 		private EnumAxis axis;
 
-		private FieldsOfSaltMod mod;
+		private MultiblockManager manager;
 		private Cuboidf[] fillAreas = null;
 
 		public override void OnLoaded(ICoreAPI api)
 		{
 			base.OnLoaded(api);
-			mod = api.ModLoader.GetModSystem<FieldsOfSaltMod>();
+			manager = api.ModLoader.GetModSystem<MultiblockManager>();
 			axis = Variant["side"] == "we" ? EnumAxis.X : EnumAxis.Z;
 		}
 
@@ -40,7 +41,7 @@ namespace FieldsOfSalt.Blocks
 
 				int variantIndex = 0;
 				var accessor = api.World.BlockAccessor;
-				if(!mod.GetReferenceToMainBlock(pos, mainPos))
+				if(!manager.GetReferenceToMainBlock(pos, mainPos))
 				{
 					mainPos = null;
 				}
@@ -81,7 +82,7 @@ namespace FieldsOfSalt.Blocks
 			var mainPos = BlockChannel.mainPos;
 
 			var accessor = api.World.BlockAccessor;
-			if(!mod.GetReferenceToMainBlock(pos, mainPos))
+			if(!manager.GetReferenceToMainBlock(pos, mainPos))
 			{
 				mainPos = null;
 			}
@@ -118,7 +119,7 @@ namespace FieldsOfSalt.Blocks
 		public void AddSink(IBlockAccessor blockAccessor, BlockPos pos, BlockFacing face, ILiquidSink sink)
 		{
 			var mainPos = new BlockPos();
-			if(mod.GetReferenceToMainBlock(pos, mainPos))
+			if(manager.GetReferenceToMainBlock(pos, mainPos))
 			{
 				(blockAccessor.GetBlockEntity(mainPos) as BlockEntitySource)?.AddSink(pos.AddCopy(face), face.Opposite, sink);
 			}
@@ -127,7 +128,7 @@ namespace FieldsOfSalt.Blocks
 		public void RemoveSink(IBlockAccessor blockAccessor, BlockPos pos, BlockFacing face, ILiquidSink sink)
 		{
 			var mainPos = new BlockPos();
-			if(mod.GetReferenceToMainBlock(pos, mainPos))
+			if(manager.GetReferenceToMainBlock(pos, mainPos))
 			{
 				(blockAccessor.GetBlockEntity(mainPos) as BlockEntitySource)?.RemoveSink(pos.AddCopy(face), face.Opposite, sink);
 			}
@@ -184,7 +185,7 @@ namespace FieldsOfSalt.Blocks
 		{
 			base.OnBlockRemoved(world, pos);
 			if(tmpPos == null) tmpPos = new BlockPos();
-			if(mod.GetReferenceToMainBlock(pos, tmpPos))
+			if(manager.GetReferenceToMainBlock(pos, tmpPos))
 			{
 				if(api.World.BlockAccessor.GetBlockEntity(tmpPos) is BlockEntitySource source)
 				{
@@ -218,7 +219,7 @@ namespace FieldsOfSalt.Blocks
 		{
 			tmpPos.Set(pos);
 			tmpPos.Add(face);
-			if(!mod.GetReferenceToMainBlock(tmpPos, tmpPos))
+			if(!manager.GetReferenceToMainBlock(tmpPos, tmpPos))
 			{
 				tmpPos.Set(pos);
 				tmpPos.Add(face);
@@ -240,7 +241,7 @@ namespace FieldsOfSalt.Blocks
 				{
 					if(connectable is ILiquidChannel)
 					{
-						if(!checkChannel || mod.GetReferenceToMainBlock(tmpPos, tmpPos) ? (tmpPos.Equals(mainBlockReference) == false) : (mainBlockReference != null))
+						if(!checkChannel || manager.GetReferenceToMainBlock(tmpPos, tmpPos) ? (tmpPos.Equals(mainBlockReference) == false) : (mainBlockReference != null))
 						{
 							return 0;
 						}
@@ -263,7 +264,7 @@ namespace FieldsOfSalt.Blocks
 				{
 					if(connectable is ILiquidChannel)
 					{
-						if(!checkChannel || mod.GetReferenceToMainBlock(tmpPos, tmpPos) ? (tmpPos.Equals(mainBlockReference) == false) : (mainBlockReference != null))
+						if(!checkChannel || manager.GetReferenceToMainBlock(tmpPos, tmpPos) ? (tmpPos.Equals(mainBlockReference) == false) : (mainBlockReference != null))
 						{
 							return 0;
 						}

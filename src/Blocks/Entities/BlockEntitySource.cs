@@ -1,4 +1,5 @@
-﻿using FieldsOfSalt.Utils;
+﻿using FieldsOfSalt.Multiblock;
+using FieldsOfSalt.Utils;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -24,7 +25,7 @@ namespace FieldsOfSalt.Blocks.Entities
 		private BlockFacing face;
 		private BlockSource blockSource;
 
-		private FieldsOfSaltMod mod;
+		private MultiblockManager manager;
 		private ConcurrentDictionary<Xyz, SinkInfo> sinks = new ConcurrentDictionary<Xyz, SinkInfo>();
 
 		private MeshData tmpMesh = null;
@@ -37,7 +38,7 @@ namespace FieldsOfSalt.Blocks.Entities
 			blockSource = (BlockSource)Block;
 			face = blockSource.Face;
 			base.Initialize(api);
-			mod = api.ModLoader.GetModSystem<FieldsOfSaltMod>();
+			manager = api.ModLoader.GetModSystem<MultiblockManager>();
 
 			fillLevel = 0;
 			if(liquidBlock > 0)
@@ -80,7 +81,7 @@ namespace FieldsOfSalt.Blocks.Entities
 
 					tmpPos.Add(dir);
 					var block = accessor.GetBlock(tmpPos);
-					if(block is ILiquidChannel channel && channel.CanConnect(accessor, tmpPos, face) && !mod.GetReferenceToMainBlock(tmpPos))
+					if(block is ILiquidChannel channel && channel.CanConnect(accessor, tmpPos, face) && !manager.GetReferenceToMainBlock(tmpPos))
 					{
 						expandedLine.Add(block.Id);
 						prevConnectable = channel;
@@ -160,7 +161,7 @@ namespace FieldsOfSalt.Blocks.Entities
 
 				tmpPos.Add(dir);
 				var block = accessor.GetBlock(tmpPos);
-				if(block is ILiquidChannel channel && channel.CanConnect(accessor, tmpPos, face) && !mod.GetReferenceToMainBlock(tmpPos))
+				if(block is ILiquidChannel channel && channel.CanConnect(accessor, tmpPos, face) && !manager.GetReferenceToMainBlock(tmpPos))
 				{
 					blockList.Add(block.Id);
 					prevConnectable = channel;
@@ -447,7 +448,7 @@ namespace FieldsOfSalt.Blocks.Entities
 				var blockPos = Pos.AddCopy(face.Opposite, lastChannelOffset + 1);
 				var mainBlock = new BlockPos();
 				if(accessor.GetBlock(blockPos) is ILiquidChannel channel &&
-					channel.CanConnect(accessor, blockPos, face) && mod.GetReferenceToMainBlock(blockPos, mainBlock))
+					channel.CanConnect(accessor, blockPos, face) && manager.GetReferenceToMainBlock(blockPos, mainBlock))
 				{
 					if(accessor.GetBlockEntity(mainBlock) is BlockEntitySource source)
 					{
@@ -474,7 +475,7 @@ namespace FieldsOfSalt.Blocks.Entities
 		{
 			if(size == 0) return;
 
-			if(offset == 0) mod.AddReferenceToMainBlock(Pos, Pos);
+			if(offset == 0) manager.AddReferenceToMainBlock(Pos, Pos);
 
 			var tmpPos = Pos.Copy();
 			var dir = face.Opposite;
@@ -482,7 +483,7 @@ namespace FieldsOfSalt.Blocks.Entities
 			for(int i = offset; i < size; i++)
 			{
 				tmpPos.Add(dir);
-				mod.AddReferenceToMainBlock(tmpPos, Pos);
+				manager.AddReferenceToMainBlock(tmpPos, Pos);
 			}
 
 			if(Api.Side == EnumAppSide.Client)
@@ -502,7 +503,7 @@ namespace FieldsOfSalt.Blocks.Entities
 		{
 			if(size == 0) return;
 
-			if((offset == 0) & unregisterSelf) mod.RemoveReferenceToMainBlock(Pos, Pos);
+			if((offset == 0) & unregisterSelf) manager.RemoveReferenceToMainBlock(Pos, Pos);
 
 			var tmpPos = Pos.Copy();
 			var dir = face.Opposite;
@@ -510,7 +511,7 @@ namespace FieldsOfSalt.Blocks.Entities
 			for(int i = offset; i < size; i++)
 			{
 				tmpPos.Add(dir);
-				mod.RemoveReferenceToMainBlock(tmpPos, Pos);
+				manager.RemoveReferenceToMainBlock(tmpPos, Pos);
 			}
 		}
 

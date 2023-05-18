@@ -7,13 +7,10 @@ using FieldsOfSalt.Renderer;
 using HarmonyLib;
 using Newtonsoft.Json.Linq;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
-using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
-using Vintagestory.Common.Database;
 
 namespace FieldsOfSalt
 {
@@ -21,7 +18,6 @@ namespace FieldsOfSalt
 	{
 		public TemplateAreaRenderer TemplateAreaRenderer => templateAreaRenderer;
 
-		private ConcurrentDictionary<Xyz, Xyz> pos2main = new ConcurrentDictionary<Xyz, Xyz>();
 		private RecipeRegistryGeneric<EvaporationRecipe> pondRecipes;
 
 		private TemplateAreaRenderer templateAreaRenderer = null;
@@ -149,39 +145,6 @@ namespace FieldsOfSalt
 			}
 
 			evaporationRecipe = null;
-			return false;
-		}
-
-		public bool GetReferenceToMainBlock(BlockPos fromPos, BlockPos outMainPos = null)
-		{
-			if(pos2main.TryGetValue(new Xyz(fromPos.X, fromPos.Y, fromPos.Z), out var mainPos))
-			{
-				if(outMainPos != null)
-				{
-					outMainPos.X = mainPos.X;
-					outMainPos.Y = mainPos.Y;
-					outMainPos.Z = mainPos.Z;
-				}
-				return true;
-			}
-			return false;
-		}
-
-		public bool AddReferenceToMainBlock(BlockPos fromPos, BlockPos mainPos)
-		{
-			return pos2main.TryAdd(new Xyz(fromPos.X, fromPos.Y, fromPos.Z), new Xyz(mainPos.X, mainPos.Y, mainPos.Z));
-		}
-
-		public bool RemoveReferenceToMainBlock(BlockPos fromPos, BlockPos mainPos)
-		{
-			if(pos2main.TryGetValue(new Xyz(fromPos.X, fromPos.Y, fromPos.Z), out var mPos))
-			{
-				if(mPos.X == mainPos.X && mPos.Y == mainPos.Y && mPos.Z == mainPos.Z)
-				{
-					pos2main.TryRemove(new Xyz(fromPos.X, fromPos.Y, fromPos.Z), out mPos);
-					return true;
-				}
-			}
 			return false;
 		}
 

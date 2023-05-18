@@ -139,6 +139,8 @@ namespace FieldsOfSalt.Items
 				return;
 			}
 
+			//TODO: check build permissions
+
 			var accessor = api.World.GetLockFreeBlockAccessor();
 			bool isInvalid = BlockEntityPond.IterateStructureBlocks(fromPos, toPos,
 				(tmpPos, face) => CheckBorderInvalid(accessor, tmpPos, face, player),
