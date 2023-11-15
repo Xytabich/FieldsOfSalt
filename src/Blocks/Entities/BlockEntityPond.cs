@@ -93,7 +93,11 @@ namespace FieldsOfSalt.Blocks.Entities
 			}
 			if(api.Side == EnumAppSide.Server)
 			{
-				RegisterGameTickListener(OnTick, 1000);
+				RegisterGameTickListener(OnServerTick, 1000);
+			}
+			else
+			{
+				RegisterGameTickListener(OnClientTick, 1000);
 			}
 		}
 
@@ -490,6 +494,7 @@ namespace FieldsOfSalt.Blocks.Entities
 
 					currentLiquidStack = liquid.GetEmptyClone();
 					PickLiquid(liquid);
+					MarkDirty(true);
 					return true;
 				}
 			}
@@ -535,10 +540,13 @@ namespace FieldsOfSalt.Blocks.Entities
 				liquid.StackSize = Math.Max(liquidCapacity - currentLiquidStack.StackSize, 0);
 			}
 			currentLiquidStack.StackSize += liquid.StackSize;
-			markDirtyNext = true;
+			if(!markDirtyNext && Api is ICoreServerAPI sapi)
+			{
+				sapi.Network.BroadcastBlockEntityPacket<int>(Pos, 2001, currentLiquidStack?.StackSize ?? 0);
+			}
 		}
 
-		private void OnTick(float dt)
+		private void OnServerTick(float dt)
 		{
 			if(recipe == null) return;
 
@@ -658,6 +666,15 @@ namespace FieldsOfSalt.Blocks.Entities
 			}
 		}
 
+		private void OnClientTick(float dt)
+		{
+			if(markDirtyNext)
+			{
+				markDirtyNext = false;
+				MarkDirty(true);
+			}
+		}
+
 		public override void OnReceivedServerPacket(int packetid, byte[] data)
 		{
 			base.OnReceivedServerPacket(packetid, data);
@@ -668,7 +685,7 @@ namespace FieldsOfSalt.Blocks.Entities
 					int amount = SerializerUtil.Deserialize<int>(data);
 					if(amount <= 0) currentLiquidStack = null;
 					else currentLiquidStack.StackSize = amount;
-					MarkDirty(true);
+					markDirtyNext = true;
 				}
 			}
 		}
