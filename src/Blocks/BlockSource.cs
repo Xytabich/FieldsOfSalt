@@ -33,7 +33,7 @@ namespace FieldsOfSalt.Blocks
 			return Face.Index == face.Opposite.Index;
 		}
 
-		public unsafe void GenLiquidMesh(IBlockAccessor blockAccessor, BlockPos pos, MeshData outMesh, int[] levels)
+		public unsafe void GenLiquidMesh(IBlockAccessor blockAccessor, BlockPos pos, MeshData outMesh, ReadOnlySpan<int> levels)
 		{
 			GraphicUtil.AddLiquidMesh(outMesh, fillArea, 0);
 
@@ -55,7 +55,7 @@ namespace FieldsOfSalt.Blocks
 		public void GetConnectedSinks(IBlockAccessor blockAccessor, BlockPos pos, Action<BlockPos, BlockFacing, ILiquidSink> addSinkCallback)
 		{
 			var tmpPos = pos.Copy();
-			tmpPos.Set(pos);
+			tmpPos.SetAll(pos);
 			tmpPos.Add(Face.Opposite);
 			if(blockAccessor.GetBlock(tmpPos) is ILiquidSinkConnector conn)
 			{

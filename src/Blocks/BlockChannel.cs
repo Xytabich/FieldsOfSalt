@@ -35,8 +35,8 @@ namespace FieldsOfSalt.Blocks
 		{
 			if(Shape?.Alternates != null && Shape.Alternates.Length >= 16)
 			{
-				if(tmpPos == null) tmpPos = new BlockPos();
-				if(BlockChannel.mainPos == null) BlockChannel.mainPos = new BlockPos();
+				if(tmpPos == null) tmpPos = new BlockPos(0);
+				if(BlockChannel.mainPos == null) BlockChannel.mainPos = new BlockPos(0);
 				var mainPos = BlockChannel.mainPos;
 
 				int variantIndex = 0;
@@ -74,11 +74,11 @@ namespace FieldsOfSalt.Blocks
 			return axis == EnumAxis.X ? face.IsAxisWE : face.IsAxisNS;
 		}
 
-		public unsafe void GenLiquidMesh(IBlockAccessor blockAccessor, BlockPos pos, MeshData outMesh, int[] levels)
+		public unsafe void GenLiquidMesh(IBlockAccessor blockAccessor, BlockPos pos, MeshData outMesh, ReadOnlySpan<int> levels)
 		{
 			EnsureFillAreas();
-			if(tmpPos == null) tmpPos = new BlockPos();
-			if(BlockChannel.mainPos == null) BlockChannel.mainPos = new BlockPos();
+			if(tmpPos == null) tmpPos = new BlockPos(0);
+			if(BlockChannel.mainPos == null) BlockChannel.mainPos = new BlockPos(0);
 			var mainPos = BlockChannel.mainPos;
 
 			var accessor = api.World.BlockAccessor;
@@ -118,7 +118,7 @@ namespace FieldsOfSalt.Blocks
 
 		public void AddSink(IBlockAccessor blockAccessor, BlockPos pos, BlockFacing face, ILiquidSink sink)
 		{
-			var mainPos = new BlockPos();
+			var mainPos = new BlockPos(0);
 			if(manager.GetReferenceToMainBlock(pos, mainPos))
 			{
 				(blockAccessor.GetBlockEntity(mainPos) as BlockEntitySource)?.AddSink(pos.AddCopy(face), face.Opposite, sink);
@@ -127,7 +127,7 @@ namespace FieldsOfSalt.Blocks
 
 		public void RemoveSink(IBlockAccessor blockAccessor, BlockPos pos, BlockFacing face, ILiquidSink sink)
 		{
-			var mainPos = new BlockPos();
+			var mainPos = new BlockPos(0);
 			if(manager.GetReferenceToMainBlock(pos, mainPos))
 			{
 				(blockAccessor.GetBlockEntity(mainPos) as BlockEntitySource)?.RemoveSink(pos.AddCopy(face), face.Opposite, sink);
@@ -136,7 +136,7 @@ namespace FieldsOfSalt.Blocks
 
 		public void GetConnectedSinks(IBlockAccessor blockAccessor, BlockPos pos, Action<BlockPos, BlockFacing, ILiquidSink> addSinkCallback)
 		{
-			if(tmpPos == null) tmpPos = new BlockPos();
+			if(tmpPos == null) tmpPos = new BlockPos(0);
 			if(axis == EnumAxis.X)
 			{
 				TryAddConnectedSink(blockAccessor, pos, BlockFacing.WEST, addSinkCallback);
@@ -168,7 +168,7 @@ namespace FieldsOfSalt.Blocks
 			base.OnBlockPlaced(world, blockPos, byItemStack);
 			var blockAccessor = api.World.BlockAccessor;
 
-			if(tmpPos == null) tmpPos = new BlockPos();
+			if(tmpPos == null) tmpPos = new BlockPos(0);
 			if(axis == EnumAxis.X)
 			{
 				TryConnectToMultiblock(blockAccessor, blockPos, BlockFacing.WEST);
@@ -184,7 +184,7 @@ namespace FieldsOfSalt.Blocks
 		public override void OnBlockRemoved(IWorldAccessor world, BlockPos pos)
 		{
 			base.OnBlockRemoved(world, pos);
-			if(tmpPos == null) tmpPos = new BlockPos();
+			if(tmpPos == null) tmpPos = new BlockPos(0);
 			if(manager.GetReferenceToMainBlock(pos, tmpPos))
 			{
 				if(api.World.BlockAccessor.GetBlockEntity(tmpPos) is BlockEntitySource source)
@@ -217,11 +217,11 @@ namespace FieldsOfSalt.Blocks
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private void TryConnectToMultiblock(IBlockAccessor blockAccessor, BlockPos pos, BlockFacing face)
 		{
-			tmpPos.Set(pos);
+			tmpPos.SetAll(pos);
 			tmpPos.Add(face);
 			if(!manager.GetReferenceToMainBlock(tmpPos, tmpPos))
 			{
-				tmpPos.Set(pos);
+				tmpPos.SetAll(pos);
 				tmpPos.Add(face);
 			}
 			if(blockAccessor.GetBlockEntity(tmpPos) is BlockEntitySource source)
@@ -233,7 +233,7 @@ namespace FieldsOfSalt.Blocks
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private int CanConnect(IBlockAccessor blockAccessor, BlockPos pos, BlockFacing face, bool checkChannel, BlockPos mainBlockReference, int flag)
 		{
-			tmpPos.Set(pos);
+			tmpPos.SetAll(pos);
 			tmpPos.Add(face);
 			if(blockAccessor.GetBlock(tmpPos) is ILiquidConnectable connectable)
 			{
@@ -258,7 +258,7 @@ namespace FieldsOfSalt.Blocks
 		{
 			if(chunkExtBlocks[extIndex3d + TileSideEnum.MoveIndex[face.Index]] is ILiquidConnectable connectable)
 			{
-				tmpPos.Set(pos);
+				tmpPos.SetAll(pos);
 				tmpPos.Add(face);
 				if(connectable.CanConnect(blockAccessor, tmpPos, face.Opposite))
 				{
@@ -278,7 +278,7 @@ namespace FieldsOfSalt.Blocks
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private static void TryAddConnectedSink(IBlockAccessor blockAccessor, BlockPos pos, BlockFacing face, Action<BlockPos, BlockFacing, ILiquidSink> addSinkCallback)
 		{
-			tmpPos.Set(pos);
+			tmpPos.SetAll(pos);
 			tmpPos.Add(face);
 			if(blockAccessor.GetBlock(tmpPos) is ILiquidSinkConnector conn)
 			{

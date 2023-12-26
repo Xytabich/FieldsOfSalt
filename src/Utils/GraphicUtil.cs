@@ -35,7 +35,7 @@ namespace FieldsOfSalt.Utils
 			cuboidSize.Z = fillArea.Length;
 
 			vertexFlags.Fill(flags);
-			ModelCubeUtilExt.AddFace(outMesh, BlockFacing.UP, cuboidCenter, cuboidSize, cuboidUVOffset, cuboidUVSize, -1, ModelCubeUtilExt.EnumShadeMode.Off, vertexFlags);
+			ModelCubeUtilExt.AddFace(outMesh, BlockFacing.UP, cuboidCenter, cuboidSize, cuboidUVOffset, cuboidUVSize, 0, -1, ModelCubeUtilExt.EnumShadeMode.Off, vertexFlags);
 		}
 
 		public static void AddLiquidBlockMesh(MeshData outMesh, Vec3f offset, TextureAtlasPosition texPos, int color, short renderPass, int flags)
@@ -54,7 +54,7 @@ namespace FieldsOfSalt.Utils
 			cuboidSize.Z = 1;
 
 			vertexFlags.Fill(flags);
-			ModelCubeUtilExt.AddFace(outMesh, BlockFacing.UP, cuboidCenter, cuboidSize, cuboidUVOffset, cuboidUVSize, color, ModelCubeUtilExt.EnumShadeMode.Off, vertexFlags, renderPass: renderPass);
+			ModelCubeUtilExt.AddFace(outMesh, BlockFacing.UP, cuboidCenter, cuboidSize, cuboidUVOffset, cuboidUVSize, texPos.atlasTextureId, color, ModelCubeUtilExt.EnumShadeMode.Off, vertexFlags, renderPass: renderPass);
 		}
 
 		public static void AddContentMesh(MeshData outMesh, Vec3f offset, float height, TextureAtlasPosition texPos, int color, int flags)
@@ -73,13 +73,13 @@ namespace FieldsOfSalt.Utils
 			cuboidSize.Z = 1;
 
 			vertexFlags.Fill(flags);
-			ModelCubeUtilExt.AddFace(outMesh, BlockFacing.UP, cuboidCenter, cuboidSize, cuboidUVOffset, cuboidUVSize, color, ModelCubeUtilExt.EnumShadeMode.On, vertexFlags);
+			ModelCubeUtilExt.AddFace(outMesh, BlockFacing.UP, cuboidCenter, cuboidSize, cuboidUVOffset, cuboidUVSize, texPos.atlasTextureId, color, ModelCubeUtilExt.EnumShadeMode.On, vertexFlags);
 
 			cuboidUVSize.Y = (texPos.y2 - texPos.y1) * height;
-			ModelCubeUtilExt.AddFace(outMesh, BlockFacing.WEST, cuboidCenter, cuboidSize, cuboidUVOffset, cuboidUVSize, color, ModelCubeUtilExt.EnumShadeMode.On, vertexFlags);
-			ModelCubeUtilExt.AddFace(outMesh, BlockFacing.EAST, cuboidCenter, cuboidSize, cuboidUVOffset, cuboidUVSize, color, ModelCubeUtilExt.EnumShadeMode.On, vertexFlags);
-			ModelCubeUtilExt.AddFace(outMesh, BlockFacing.NORTH, cuboidCenter, cuboidSize, cuboidUVOffset, cuboidUVSize, color, ModelCubeUtilExt.EnumShadeMode.On, vertexFlags);
-			ModelCubeUtilExt.AddFace(outMesh, BlockFacing.SOUTH, cuboidCenter, cuboidSize, cuboidUVOffset, cuboidUVSize, color, ModelCubeUtilExt.EnumShadeMode.On, vertexFlags);
+			ModelCubeUtilExt.AddFace(outMesh, BlockFacing.WEST, cuboidCenter, cuboidSize, cuboidUVOffset, cuboidUVSize, texPos.atlasTextureId, color, ModelCubeUtilExt.EnumShadeMode.On, vertexFlags);
+			ModelCubeUtilExt.AddFace(outMesh, BlockFacing.EAST, cuboidCenter, cuboidSize, cuboidUVOffset, cuboidUVSize, texPos.atlasTextureId, color, ModelCubeUtilExt.EnumShadeMode.On, vertexFlags);
+			ModelCubeUtilExt.AddFace(outMesh, BlockFacing.NORTH, cuboidCenter, cuboidSize, cuboidUVOffset, cuboidUVSize, texPos.atlasTextureId, color, ModelCubeUtilExt.EnumShadeMode.On, vertexFlags);
+			ModelCubeUtilExt.AddFace(outMesh, BlockFacing.SOUTH, cuboidCenter, cuboidSize, cuboidUVOffset, cuboidUVSize, texPos.atlasTextureId, color, ModelCubeUtilExt.EnumShadeMode.On, vertexFlags);
 		}
 
 		public static unsafe void MultiplyLiquidHeightsHorizontal(MeshData outMesh, float* heights)
@@ -92,7 +92,7 @@ namespace FieldsOfSalt.Utils
 			}
 		}
 
-		public static unsafe void GetLiquidHeightsHorizontal(int[] levels, Cuboidf[] fillAreas, float* outHeights)
+		public static unsafe void GetLiquidHeightsHorizontal(ReadOnlySpan<int> levels, Cuboidf[] fillAreas, float* outHeights)
 		{
 			const float m = 1f / 7f;
 			for(int i = 0; i < 4; i++)
@@ -102,7 +102,7 @@ namespace FieldsOfSalt.Utils
 			}
 		}
 
-		public static unsafe void GetLiquidHeightsHorizontal(int[] levels, Cuboidf fillArea, float* outHeights)
+		public static unsafe void GetLiquidHeightsHorizontal(ReadOnlySpan<int> levels, Cuboidf fillArea, float* outHeights)
 		{
 			const float m = 1f / 7f;
 			for(int i = 0; i < 4; i++)

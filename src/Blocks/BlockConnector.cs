@@ -26,7 +26,7 @@ namespace FieldsOfSalt.Blocks
 		{
 			base.OnBlockRemoved(world, pos);
 
-			var mainPos = new BlockPos();
+			var mainPos = new BlockPos(pos.dimension);
 			if(manager.GetReferenceToMainBlock(pos, mainPos))
 			{
 				if(world.BlockAccessor.GetBlock(mainPos) is IMultiblockMainBlock main)
@@ -38,7 +38,7 @@ namespace FieldsOfSalt.Blocks
 
 		public ILiquidSink GetLiquidSink(IBlockAccessor blockAccessor, BlockPos pos, BlockFacing face)
 		{
-			var mainPos = new BlockPos();
+			var mainPos = new BlockPos(pos.dimension);
 			if(manager.GetReferenceToMainBlock(pos, mainPos))
 			{
 				if(blockAccessor.GetBlockEntity(mainPos) is ILiquidSink sink)

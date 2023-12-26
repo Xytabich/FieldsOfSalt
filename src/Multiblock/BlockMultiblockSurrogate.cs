@@ -16,7 +16,7 @@ namespace FieldsOfSalt.Multiblock
 
 		public override bool OnBlockInteractStart(IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel)
 		{
-			var mainPos = new BlockPos();
+			var mainPos = new BlockPos(0);
 			if(manager.GetReferenceToMainBlock(blockSel.Position, mainPos))
 			{
 				if(world.BlockAccessor.GetBlock(mainPos) is IMultiblockMainBlock main)
@@ -29,7 +29,7 @@ namespace FieldsOfSalt.Multiblock
 
 		public override bool OnBlockInteractStep(float secondsUsed, IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel)
 		{
-			var mainPos = new BlockPos();
+			var mainPos = new BlockPos(0);
 			if(manager.GetReferenceToMainBlock(blockSel.Position, mainPos))
 			{
 				if(world.BlockAccessor.GetBlock(mainPos) is IMultiblockMainBlock main)
@@ -42,7 +42,7 @@ namespace FieldsOfSalt.Multiblock
 
 		public override void OnBlockInteractStop(float secondsUsed, IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel)
 		{
-			var mainPos = new BlockPos();
+			var mainPos = new BlockPos(0);
 			if(manager.GetReferenceToMainBlock(blockSel.Position, mainPos))
 			{
 				if(world.BlockAccessor.GetBlock(mainPos) is IMultiblockMainBlock main)
@@ -56,7 +56,7 @@ namespace FieldsOfSalt.Multiblock
 
 		public override bool OnBlockInteractCancel(float secondsUsed, IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel, EnumItemUseCancelReason cancelReason)
 		{
-			var mainPos = new BlockPos();
+			var mainPos = new BlockPos(0);
 			if(manager.GetReferenceToMainBlock(blockSel.Position, mainPos))
 			{
 				if(world.BlockAccessor.GetBlock(mainPos) is IMultiblockMainBlock main)
@@ -69,7 +69,7 @@ namespace FieldsOfSalt.Multiblock
 
 		public override void OnBlockBroken(IWorldAccessor world, BlockPos pos, IPlayer byPlayer, float dropQuantityMultiplier = 1)
 		{
-			var mainPos = new BlockPos();
+			var mainPos = new BlockPos(0);
 			if(manager.GetReferenceToMainBlock(pos, mainPos))
 			{
 				if(world.BlockAccessor.GetBlock(mainPos) is IMultiblockMainBlock main)
@@ -83,7 +83,7 @@ namespace FieldsOfSalt.Multiblock
 
 		public override void OnBlockRemoved(IWorldAccessor world, BlockPos pos)
 		{
-			var mainPos = new BlockPos();
+			var mainPos = new BlockPos(0);
 			if(manager.GetReferenceToMainBlock(pos, mainPos))
 			{
 				if(world.BlockAccessor.GetBlock(mainPos) is IMultiblockMainBlock main)
@@ -96,7 +96,7 @@ namespace FieldsOfSalt.Multiblock
 
 		public override ItemStack[] GetDrops(IWorldAccessor world, BlockPos pos, IPlayer byPlayer, float dropQuantityMultiplier = 1)
 		{
-			var mainPos = new BlockPos();
+			var mainPos = new BlockPos(0);
 			if(manager.GetReferenceToMainBlock(pos, mainPos))
 			{
 				if(world.BlockAccessor.GetBlock(mainPos) is IMultiblockMainBlock main)
@@ -109,7 +109,7 @@ namespace FieldsOfSalt.Multiblock
 
 		public override ItemStack OnPickBlock(IWorldAccessor world, BlockPos pos)
 		{
-			var mainPos = new BlockPos();
+			var mainPos = new BlockPos(0);
 			if(manager.GetReferenceToMainBlock(pos, mainPos))
 			{
 				if(world.BlockAccessor.GetBlock(mainPos) is IMultiblockMainBlock main)
@@ -122,7 +122,7 @@ namespace FieldsOfSalt.Multiblock
 
 		public override string GetPlacedBlockInfo(IWorldAccessor world, BlockPos pos, IPlayer forPlayer)
 		{
-			var mainPos = new BlockPos();
+			var mainPos = new BlockPos(0);
 			if(manager.GetReferenceToMainBlock(pos, mainPos))
 			{
 				if(world.BlockAccessor.GetBlock(mainPos) is IMultiblockMainBlock main)
@@ -135,7 +135,7 @@ namespace FieldsOfSalt.Multiblock
 
 		public override string GetPlacedBlockName(IWorldAccessor world, BlockPos pos)
 		{
-			var mainPos = new BlockPos();
+			var mainPos = new BlockPos(0);
 			if(manager.GetReferenceToMainBlock(pos, mainPos))
 			{
 				if(world.BlockAccessor.GetBlock(mainPos) is IMultiblockMainBlock main)
@@ -148,7 +148,7 @@ namespace FieldsOfSalt.Multiblock
 
 		public override int GetColorWithoutTint(ICoreClientAPI capi, BlockPos pos)
 		{
-			var mainPos = new BlockPos();
+			var mainPos = new BlockPos(0);
 			if(manager.GetReferenceToMainBlock(pos, mainPos))
 			{
 				if(capi.World.BlockAccessor.GetBlock(mainPos) is IMultiblockMainBlock main)
@@ -161,7 +161,7 @@ namespace FieldsOfSalt.Multiblock
 
 		public override WorldInteraction[] GetPlacedBlockInteractionHelp(IWorldAccessor world, BlockSelection selection, IPlayer forPlayer)
 		{
-			var mainPos = new BlockPos();
+			var mainPos = new BlockPos(0);
 			if(manager.GetReferenceToMainBlock(selection.Position, mainPos))
 			{
 				if(world.BlockAccessor.GetBlock(mainPos) is IMultiblockMainBlock main)
@@ -174,7 +174,7 @@ namespace FieldsOfSalt.Multiblock
 
 		public override Cuboidf[] GetCollisionBoxes(IBlockAccessor blockAccessor, BlockPos pos)
 		{
-			var mainPos = new BlockPos();
+			var mainPos = new BlockPos(0);
 			if(manager.GetReferenceToMainBlock(pos, mainPos))
 			{
 				if(blockAccessor.GetBlock(mainPos) is IMultiblockMainBlock main)
@@ -187,7 +187,7 @@ namespace FieldsOfSalt.Multiblock
 
 		public override int GetRandomColor(ICoreClientAPI capi, BlockPos pos, BlockFacing facing, int rndIndex = -1)
 		{
-			var mainPos = new BlockPos();
+			var mainPos = new BlockPos(0);
 			if(manager.GetReferenceToMainBlock(pos, mainPos))
 			{
 				if(capi.World.BlockAccessor.GetBlock(mainPos) is IMultiblockMainBlock main)

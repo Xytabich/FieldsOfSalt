@@ -23,7 +23,7 @@ namespace FieldsOfSalt.Renderer
 			meshData = new MeshData(24, 36, withNormals: false, withUv: false, withRgba: true, withFlags: false);
 			for(int i = 0; i < 6; i++)
 			{
-				ModelCubeUtilExt.AddFace(meshData, BlockFacing.ALLFACES[i], Vec3f.Zero, Vec3f.One, -1);
+				ModelCubeUtilExt.AddFaceSkipTex(meshData, BlockFacing.ALLFACES[i], Vec3f.Zero, Vec3f.One, -1);
 			}
 
 			capi.Event.RegisterRenderer(this, EnumRenderStage.OIT, "fieldsofsalt:templatearea");

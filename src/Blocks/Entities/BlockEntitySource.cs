@@ -120,7 +120,7 @@ namespace FieldsOfSalt.Blocks.Entities
 
 		public void AddSink(BlockPos blockPos, BlockFacing connectedFace, ILiquidSink sink)
 		{
-			sinks[new Xyz(blockPos.X, blockPos.Y, blockPos.Z)] = new SinkInfo(connectedFace, sink);
+			sinks[new Xyz(blockPos.X, blockPos.InternalY, blockPos.Z)] = new SinkInfo(connectedFace, sink);
 			if(Api != null && Api.Side == EnumAppSide.Client)
 			{
 				int level = fillLevel - Math.Abs(face.IsAxisWE ? (blockPos.X - Pos.X) : (blockPos.Z - Pos.Z));
@@ -138,7 +138,7 @@ namespace FieldsOfSalt.Blocks.Entities
 
 		public void RemoveSink(BlockPos blockPos, BlockFacing connectedFace, ILiquidSink sink)
 		{
-			sinks.TryRemove(new Xyz(blockPos.X, blockPos.Y, blockPos.Z), out _);
+			sinks.TryRemove(new Xyz(blockPos.X, blockPos.InternalY, blockPos.Z), out _);
 			if(Api.Side == EnumAppSide.Client)
 			{
 				MarkDirty(true);
@@ -253,7 +253,7 @@ namespace FieldsOfSalt.Blocks.Entities
 			{
 				if(tmpMesh == null) tmpMesh = new MeshData(24, 36).WithColorMaps().WithRenderpasses().WithXyzFaces();
 				var accessor = Api.World.GetLockFreeBlockAccessor();
-				var fillLevels = new int[6];//TODO: Span & stackalloc
+				Span<int> fillLevels = stackalloc int[6];
 				var side = face.IsAxisNS ? BlockFacing.EAST : BlockFacing.NORTH;
 
 				fillLevels[face.Index] = Math.Min(fillLevel, 7);
@@ -272,10 +272,6 @@ namespace FieldsOfSalt.Blocks.Entities
 				blockSource.GenLiquidMesh(accessor, Pos, tmpMesh, fillLevels);
 				if(tmpMesh.VerticesCount > 0)
 				{
-					//for(int j = 0; j < tmpMesh.VerticesCount; j++)//TODO: color doesn't work?
-					//{
-					//	tmpMesh.Rgba[j * 4] = 127;
-					//}
 					tmpMesh.SetTexPos(liquidProps.texture);
 					tmpMesh.RenderPassesAndExtraBits.Fill((short)EnumChunkRenderPass.Transparent);
 					tmpMesh.Flags.Fill(liquidProps.glowLevel);
@@ -305,10 +301,6 @@ namespace FieldsOfSalt.Blocks.Entities
 						(Api.World.GetBlock(channelLine[i]) as ILiquidChannel)?.GenLiquidMesh(accessor, tmpPos, tmpMesh, fillLevels);
 						if(tmpMesh.VerticesCount > 0)
 						{
-							//for(int j = 0; j < tmpMesh.VerticesCount; j++)//TODO: color doesn't work?
-							//{
-							//	tmpMesh.Rgba[j * 4] = 127;
-							//}
 							tmpMesh.Translate(offset);
 							tmpMesh.SetTexPos(liquidProps.texture);
 							tmpMesh.RenderPassesAndExtraBits.Fill((short)EnumChunkRenderPass.Transparent);
@@ -321,9 +313,9 @@ namespace FieldsOfSalt.Blocks.Entities
 			return base.OnTesselation(mesher, tessThreadTesselator);
 		}
 
-		public override void OnLoadCollectibleMappings(IWorldAccessor worldForNewMappings, Dictionary<int, AssetLocation> oldBlockIdMapping, Dictionary<int, AssetLocation> oldItemIdMapping, int schematicSeed)
+		public override void OnLoadCollectibleMappings(IWorldAccessor worldForNewMappings, Dictionary<int, AssetLocation> oldBlockIdMapping, Dictionary<int, AssetLocation> oldItemIdMapping, int schematicSeed, bool resolveImports)
 		{
-			base.OnLoadCollectibleMappings(worldForNewMappings, oldBlockIdMapping, oldItemIdMapping, schematicSeed);
+			base.OnLoadCollectibleMappings(worldForNewMappings, oldBlockIdMapping, oldItemIdMapping, schematicSeed, resolveImports);
 			for(int i = 0; i < channelLine.Length; i++)
 			{
 				if(oldBlockIdMapping.TryGetValue(channelLine[i], out var code))
@@ -410,7 +402,7 @@ namespace FieldsOfSalt.Blocks.Entities
 					if(Api.Side == EnumAppSide.Client) MarkDirty(true);
 				}
 				var accessor = Api.World.BlockAccessor;
-				var tmpPos = new BlockPos();
+				var tmpPos = new BlockPos(0);
 				int stackSize = (int)Math.Ceiling(liquidProps.ItemsPerLitre * blockSource.LitresPerTickGeneration);
 				foreach(var pair in sinks)
 				{
@@ -418,7 +410,7 @@ namespace FieldsOfSalt.Blocks.Entities
 					int offset = Math.Abs(face.IsAxisWE ? (pos.X - Pos.X) : (pos.Z - Pos.Z));
 					if(offset <= fillLevel)
 					{
-						tmpPos.Set(pos.X, pos.Y, pos.Z);
+						tmpPos.SetInternal(pos.X, pos.Y, pos.Z);
 						var stack = liquidStack;
 						stack.StackSize = stackSize;
 						pair.Value.sink.TryAccept(accessor, tmpPos, pair.Value.connectedFace, ref stack);
@@ -446,7 +438,7 @@ namespace FieldsOfSalt.Blocks.Entities
 			if(lastChannelBlock is ILiquidChannel lastChannel && lastChannel.CanConnect(accessor, lastBlockPos, face.Opposite))
 			{
 				var blockPos = Pos.AddCopy(face.Opposite, lastChannelOffset + 1);
-				var mainBlock = new BlockPos();
+				var mainBlock = new BlockPos(0);
 				if(accessor.GetBlock(blockPos) is ILiquidChannel channel &&
 					channel.CanConnect(accessor, blockPos, face) && manager.GetReferenceToMainBlock(blockPos, mainBlock))
 				{
@@ -462,10 +454,10 @@ namespace FieldsOfSalt.Blocks.Entities
 		{
 			if(Api.Side == EnumAppSide.Client && liquidBlock <= 0)
 			{
-				var tmpPos = new BlockPos();
+				var tmpPos = new BlockPos(0);
 				foreach(var pair in sinks)
 				{
-					tmpPos.Set(pair.Key.X, pair.Key.Y, pair.Key.Z);
+					tmpPos.SetInternal(pair.Key.X, pair.Key.Y, pair.Key.Z);
 					pair.Value.sink.SetLiquidLevel(blockAccessor, tmpPos, pair.Value.connectedFace, 0, null);
 				}
 			}
@@ -489,7 +481,7 @@ namespace FieldsOfSalt.Blocks.Entities
 			if(Api.Side == EnumAppSide.Client)
 			{
 				var accessor = Api.World.BlockAccessor;
-				tmpPos.Set(Pos);
+				tmpPos.SetAll(Pos);
 				tmpPos.Add(dir, offset);
 				for(int i = offset; i < size; i++)
 				{

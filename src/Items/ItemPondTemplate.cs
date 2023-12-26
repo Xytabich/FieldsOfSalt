@@ -56,12 +56,14 @@ namespace FieldsOfSalt.Items
 					var fromPos = new BlockPos(
 						Math.Min(x.Value, blockSel.Position.X),
 						y.Value,
-						Math.Min(z.Value, blockSel.Position.Z)
+						Math.Min(z.Value, blockSel.Position.Z),
+						blockSel.Position.dimension
 					);
 					var toPos = new BlockPos(
 						Math.Max(x.Value, blockSel.Position.X),
 						y.Value,
-						Math.Max(z.Value, blockSel.Position.Z)
+						Math.Max(z.Value, blockSel.Position.Z),
+						blockSel.Position.dimension
 					);
 					TryCreateStructure(fromPos, toPos, (byEntity as EntityPlayer)?.Player as IServerPlayer);
 				}
@@ -482,8 +484,8 @@ namespace FieldsOfSalt.Items
 
 		private class MultiblockInfo
 		{
-			public JsonItemStack Main;
-			public JsonItemStack Surrogate;
+			public JsonItemStack Main = default;
+			public JsonItemStack Surrogate = default;
 
 			public bool Resolve(IWorldAccessor world)
 			{

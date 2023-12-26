@@ -17,7 +17,7 @@ namespace FieldsOfSalt.Blocks
 
 		public override void OnJsonTesselation(ref MeshData sourceMesh, ref int[] lightRgbsByCorner, BlockPos pos, Block[] chunkExtBlocks, int extIndex3d)
 		{
-			var mainPos = new BlockPos();
+			var mainPos = new BlockPos(pos.InternalY);
 			if(manager.GetReferenceToMainBlock(pos, mainPos))
 			{
 				if(api.World.BlockAccessor.GetBlock(mainPos) is IMultiblockRenderMain main)

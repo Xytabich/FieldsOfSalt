@@ -41,6 +41,6 @@ namespace FieldsOfSalt.Blocks
 		/// <param name="pos">Channel position</param>
 		/// <param name="outMesh">Destination mesh</param>
 		/// <param name="levels">Liquid levels per face, 6 total</param>
-		void GenLiquidMesh(IBlockAccessor blockAccessor, BlockPos pos, MeshData outMesh, int[] levels);
+		void GenLiquidMesh(IBlockAccessor blockAccessor, BlockPos pos, MeshData outMesh, ReadOnlySpan<int> levels);
 	}
 }

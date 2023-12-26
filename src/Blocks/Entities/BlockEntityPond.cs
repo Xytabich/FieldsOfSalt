@@ -34,7 +34,7 @@ namespace FieldsOfSalt.Blocks.Entities
 		private double prevCalendarHour = 0;
 		private double layerProgress = 0;
 
-		private List<ConnectorInfo> connectors = new List<ConnectorInfo>();
+		private readonly List<ConnectorInfo> connectors = new List<ConnectorInfo>();
 
 		// Calculated
 		private int evaporationArea = 0;
@@ -275,9 +275,9 @@ namespace FieldsOfSalt.Blocks.Entities
 			return true;
 		}
 
-		public override void OnLoadCollectibleMappings(IWorldAccessor worldForNewMappings, Dictionary<int, AssetLocation> oldBlockIdMapping, Dictionary<int, AssetLocation> oldItemIdMapping, int schematicSeed)
+		public override void OnLoadCollectibleMappings(IWorldAccessor worldForNewMappings, Dictionary<int, AssetLocation> oldBlockIdMapping, Dictionary<int, AssetLocation> oldItemIdMapping, int schematicSeed, bool resolveImports)
 		{
-			base.OnLoadCollectibleMappings(worldForNewMappings, oldBlockIdMapping, oldItemIdMapping, schematicSeed);
+			base.OnLoadCollectibleMappings(worldForNewMappings, oldBlockIdMapping, oldItemIdMapping, schematicSeed, resolveImports);
 			if(blockIds != null)
 			{
 				for(int i = 0; i < blockIds.Length; i++)
@@ -405,6 +405,7 @@ namespace FieldsOfSalt.Blocks.Entities
 				if(amount > 0)
 				{
 					layersPacked[index >> 1] = (byte)((index & 1) == 0 ? (value & 240) : (value & 15));
+					if(amount == 15) evaporationArea++;
 
 					var output = recipe.Output.ResolvedItemstack.Clone();
 					output.StackSize = amount;
@@ -575,65 +576,65 @@ namespace FieldsOfSalt.Blocks.Entities
 						int addLayers = (int)layerProgress;
 						layerProgress -= addLayers;
 						int addOutputUnitsAmount = addLayers * recipe.Output.StackSize * evaporationArea;
+						evaporationArea = (size.X - 2) * (size.Y - 2);
 
 						int count = ((size.X - 2) * (size.Y - 2)) >> 1;
 						int usedLayers = 0;
 						for(int i = 0; i < count; i++)
 						{
 							uint value = layersPacked[i];
-							uint newValue = 0;
 
-							int size = (int)(value & 15);
+							int size = (int)(value & 0x0F);
 							if(size < 15)
 							{
 								size += addLayers;
-								if(size > 15)
+								if(size >= 15)
 								{
-									newValue = (uint)15;
-									addOutputUnitsAmount -= 15 - addLayers;
+									value |= 0x0F;
+									addOutputUnitsAmount -= addLayers - (size - 15);
 									addLayers = addOutputUnitsAmount / recipe.Output.StackSize;
 									evaporationArea--;
 									usedLayers += 15;
 								}
 								else
 								{
-									newValue = (uint)size;
+									value = (uint)size | (value & 0xF0);
 									addOutputUnitsAmount -= addLayers;
-									if(size == 15) evaporationArea--;
 									usedLayers += size;
 								}
 							}
 							else
 							{
 								usedLayers += 15;
+								evaporationArea--;
 							}
 
 							size = (int)(value >> 4);
 							if(size < 15)
 							{
 								size += addLayers;
-								if(size > 15)
+								if(size >= 15)
 								{
-									newValue |= (uint)0b11110000;
-									addOutputUnitsAmount -= 15 - addLayers;
+									value |= 0xF0;
+									addOutputUnitsAmount -= addLayers - (size - 15);
 									addLayers = addOutputUnitsAmount / recipe.Output.StackSize;
 									evaporationArea--;
 									usedLayers += 15;
 								}
 								else
 								{
-									newValue |= (uint)size << 4;
+									value = ((uint)size << 4) | (value & 0x0F);
 									addOutputUnitsAmount -= addLayers;
-									if(size == 15) evaporationArea--;
 									usedLayers += size;
 								}
 							}
 							else
 							{
 								usedLayers += 15;
+								evaporationArea--;
 							}
 
-							layersPacked[i] = (byte)newValue;
+							layersPacked[i] = (byte)value;
 						}
 						{
 							int size = addOutputUnitsAmount + layersPacked[count];
@@ -645,7 +646,7 @@ namespace FieldsOfSalt.Blocks.Entities
 							}
 							else
 							{
-								layersPacked[count] = (byte)GameMath.Clamp(size, 0, 15);
+								layersPacked[count] = (byte)Math.Max(size, 0);
 								usedLayers += size;
 							}
 						}
@@ -727,7 +728,7 @@ namespace FieldsOfSalt.Blocks.Entities
 			if(multiblockRegistered) return;
 			multiblockRegistered = true;
 
-			var fromPos = new BlockPos(Pos.X - (size.X >> 1), Pos.Y, Pos.Z - (size.Y >> 1));
+			var fromPos = new BlockPos(Pos.X - (size.X >> 1), Pos.Y, Pos.Z - (size.Y >> 1), Pos.dimension);
 			var toPos = fromPos.AddCopy(size.X - 1, 0, size.Y - 1);
 
 			var accessor = Api.World.BlockAccessor;
@@ -763,7 +764,7 @@ namespace FieldsOfSalt.Blocks.Entities
 			if(!multiblockRegistered) return;
 			multiblockRegistered = false;
 
-			var fromPos = new BlockPos(Pos.X - (size.X >> 1), Pos.Y, Pos.Z - (size.Y >> 1));
+			var fromPos = new BlockPos(Pos.X - (size.X >> 1), Pos.Y, Pos.Z - (size.Y >> 1), Pos.dimension);
 			var toPos = fromPos.AddCopy(size.X - 1, 0, size.Y - 1);
 
 			bool UnregisterBlock(BlockPos tmpPos)
@@ -778,11 +779,11 @@ namespace FieldsOfSalt.Blocks.Entities
 			}
 			IterateStructureBlocks(fromPos, toPos, UnregisterBorderBlock, UnregisterBlock);
 
-			var channelPos = new BlockPos();
+			var channelPos = new BlockPos(0);
 			var accessor = Api.World.BlockAccessor;
 			foreach(var connector in connectors)
 			{
-				channelPos.Set(connector.pos);
+				channelPos.SetAll(connector.pos);
 				channelPos.Add(connector.face);
 				if(accessor.GetBlock(channelPos) is ILiquidChannel channel)
 				{
