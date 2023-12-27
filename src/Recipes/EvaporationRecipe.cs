@@ -1,5 +1,6 @@
 ﻿using FieldsOfSalt.Utils;
 using Newtonsoft.Json;
+using System;
 using System.IO;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
@@ -11,7 +12,7 @@ namespace FieldsOfSalt.Recipes
 	public class EvaporationRecipe : IByteSerializable
 	{
 		[JsonProperty(Required = Required.Always)]
-		public JsonItemStack Input;
+		public LiquidIngredient Input;
 		[JsonProperty(Required = Required.Always)]
 		public JsonItemStack Output;
 
@@ -30,21 +31,24 @@ namespace FieldsOfSalt.Recipes
 
 		public WaterTightContainableProps InputProps;
 
-		private double CalTempMult;
+		private double invTimeMult;
+		private double invTemperatureMult;
+		private double temperatureMultCap;
+		private double baseTemperature;
 
 		public double GetProgress(double hours, float temperature)
 		{
-			return hours * (temperature + 270) * CalTempMult;
+			double mult = Math.Max(temperature + baseTemperature, 0) * invTemperatureMult;
+			return hours * invTimeMult * Math.Min(mult * mult, temperatureMultCap);
 		}
 
 		public void Init()
 		{
 			Enabled = true;
-			CalTempMult = 1.0 / (EvaporationTime * 290);
 			InputProps = BlockLiquidContainerBase.GetContainableProps(Input.ResolvedItemstack);
 		}
 
-		public bool Resolve(IWorldAccessor resolver, string sourceForErrorLogging)
+		public bool Resolve(IWorldAccessor resolver, ModConfig config, string sourceForErrorLogging)
 		{
 			if(OutputTexture?.Base == null)
 			{
@@ -58,8 +62,26 @@ namespace FieldsOfSalt.Recipes
 			}
 			if(Input.Resolve(resolver, sourceForErrorLogging))
 			{
+				if(Input.Litres > 0)
+				{
+					var liquid = BlockLiquidContainerBase.GetContainableProps(Input.ResolvedItemstack);
+					if(liquid == null)
+					{
+						resolver.Logger.Log(EnumLogType.Warning, sourceForErrorLogging + " has a litres parameter in the input ingredient, but no suitable liquid was found");
+						return false;
+					}
+
+					Input.StackSize = (int)(liquid.ItemsPerLitre * Input.Litres);
+					Input.ResolvedItemstack.StackSize = Input.StackSize;
+				}
+
 				if(Output.Resolve(resolver, sourceForErrorLogging))
 				{
+					baseTemperature = -config.BaseTemperature;
+					invTimeMult = 1 / EvaporationTime;
+					temperatureMultCap = config.MaxSpeedMultiplier;
+					invTemperatureMult = 1.0 / (20 + baseTemperature);
+
 					Init();
 
 					if(resolver.Api is ICoreClientAPI capi)
@@ -83,7 +105,7 @@ namespace FieldsOfSalt.Recipes
 
 		public void FromBytes(BinaryReader reader, IWorldAccessor resolver)
 		{
-			if(reader.TryReadJsonItemStack(resolver, out Input))
+			if(reader.TryReadLiquidItemStack(resolver, out Input))
 			{
 				if(reader.TryReadJsonItemStack(resolver, out Output))
 				{

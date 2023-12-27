@@ -191,7 +191,7 @@ namespace FieldsOfSalt.Blocks.Entities
 			}
 			if(Api == null)
 			{
-				recipe = recipeLiquid == null ? null : new EvaporationRecipe() { Input = new JsonItemStack() { ResolvedItemstack = recipeLiquid } };
+				recipe = recipeLiquid == null ? null : new EvaporationRecipe() { Input = new LiquidIngredient() { ResolvedItemstack = recipeLiquid } };
 			}
 			else
 			{
@@ -405,7 +405,7 @@ namespace FieldsOfSalt.Blocks.Entities
 				if(amount > 0)
 				{
 					layersPacked[index >> 1] = (byte)((index & 1) == 0 ? (value & 240) : (value & 15));
-					if(amount == 15) evaporationArea++;
+					if(amount == 15) CalculateAreaAndCapacity();
 
 					var output = recipe.Output.ResolvedItemstack.Clone();
 					output.StackSize = amount;

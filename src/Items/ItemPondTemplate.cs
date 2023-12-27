@@ -141,12 +141,16 @@ namespace FieldsOfSalt.Items
 				return;
 			}
 
-			//TODO: check build permissions
-
+			var claims = api.World.Claims;
 			var accessor = api.World.GetLockFreeBlockAccessor();
 			bool isInvalid = BlockEntityPond.IterateStructureBlocks(fromPos, toPos,
-				(tmpPos, face) => CheckBorderInvalid(accessor, tmpPos, face, player),
+				(tmpPos, face) => CheckBorderInvalid(accessor, claims, tmpPos, face, player),
 				tmpPos => {
+					if(player != null && !claims.TryAccess(player, tmpPos, EnumBlockAccessFlags.BuildOrBreak))
+					{
+						return true;
+					}
+
 					var block = accessor.GetBlock(tmpPos);
 					if(template.Bottom.BlockVariants.Contains(block.Id))
 					{
@@ -161,8 +165,13 @@ namespace FieldsOfSalt.Items
 			BlockEntityPond.CreateStructure(api.World, fromPos, toPos, mainBlock, surrogateBlock);
 		}
 
-		private bool CheckBorderInvalid(IBlockAccessor accessor, BlockPos pos, BlockFacing facing, IServerPlayer player)
+		private bool CheckBorderInvalid(IBlockAccessor accessor, ILandClaimAPI claims, BlockPos pos, BlockFacing facing, IServerPlayer player)
 		{
+			if(player != null && !claims.TryAccess(player, pos, EnumBlockAccessFlags.BuildOrBreak))
+			{
+				return true;
+			}
+
 			var block = accessor.GetBlock(pos);
 			if(!template.Border.BlockVariants.Contains(block.Id))
 			{

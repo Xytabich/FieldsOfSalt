@@ -4,6 +4,7 @@ using FieldsOfSalt.Handbook;
 using FieldsOfSalt.Items;
 using FieldsOfSalt.Recipes;
 using FieldsOfSalt.Renderer;
+using FieldsOfSalt.Utils;
 using HarmonyLib;
 using Newtonsoft.Json.Linq;
 using System;
@@ -72,6 +73,7 @@ namespace FieldsOfSalt
 			base.AssetsLoaded(api);
 			if(api is ICoreServerAPI sapi)
 			{
+				var config = sapi.LoadModConfig<ModConfig>("fieldsofsalt.json") ?? new ModConfig();
 				var many = api.Assets.GetMany<JToken>(sapi.Server.Logger, "recipes/evaporationpond");
 				int quantityRegistered = 0;
 				int quantityIgnored = 0;
@@ -79,7 +81,7 @@ namespace FieldsOfSalt
 				{
 					if(pair.Value is JObject)
 					{
-						if(LoadPondRecipe(sapi, pair.Key, pair.Value))
+						if(LoadPondRecipe(sapi, config, pair.Key, pair.Value))
 						{
 							quantityRegistered++;
 						}
@@ -92,7 +94,7 @@ namespace FieldsOfSalt
 					{
 						foreach(var token in arr)
 						{
-							if(LoadPondRecipe(sapi, pair.Key, pair.Value))
+							if(LoadPondRecipe(sapi, config, pair.Key, pair.Value))
 							{
 								quantityRegistered++;
 							}
@@ -148,10 +150,10 @@ namespace FieldsOfSalt
 			return false;
 		}
 
-		private bool LoadPondRecipe(ICoreServerAPI api, AssetLocation location, JToken json)
+		private bool LoadPondRecipe(ICoreServerAPI api, ModConfig config, AssetLocation location, JToken json)
 		{
 			var recipe = json.ToObject<EvaporationRecipe>(location.Domain);
-			if(recipe.Resolve(api.World, "pond evaporation recipe " + location))
+			if(recipe.Resolve(api.World, config, "pond evaporation recipe " + location))
 			{
 				pondRecipes.Recipes.Add(recipe);
 				return true;

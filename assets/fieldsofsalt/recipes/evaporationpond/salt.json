@@ -2,7 +2,7 @@
 	"input": {
 		"code": "game:saltwaterportion",
 		"type": "item",
-		"quantity": 200
+		"litres": 2
 	},
 	"output": {
 		"code": "game:salt",
