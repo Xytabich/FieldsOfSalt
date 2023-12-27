@@ -11,6 +11,6 @@ It is possible to add custom pond recipes, [salt.json](https://github.com/Xytabi
     "input": { ... }, // Liquid stack
     "output": { ... }, // Result stack
     "outputTexture": { "base": "..." }, // Texture used to render the content of the pond
-    "evaporationTime": 24 // Evaporation time for a whole stack of liquid at 20°C
+    "evaporationTime": 24 // Number of hours required for the entire stack of liquid to evaporate at 20°C
 }
 ```
