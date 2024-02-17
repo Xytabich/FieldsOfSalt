@@ -1,0 +1,52 @@
+{
+	"fieldsofsalt:block-connector-bauxite-*": "Connecteur pour bassin d'évaporation (Bauxite)",
+	"fieldsofsalt:block-connector-whitemarble-*": "Connecteur pour bassin d'évaporation (Marbre blanc)",
+	"fieldsofsalt:block-connector-greenmarble-*": "Connecteur pour bassin d'évaporation (Marbre vert)",
+	"fieldsofsalt:block-connector-redmarble-*": "Connecteur pour bassin d'évaporation (Marbre rose crème)",
+	"fieldsofsalt:block-connector-chert-*": "Connecteur pour bassin d'évaporation (Chaille)",
+	"fieldsofsalt:block-connector-conglomerate-*": "Connecteur pour bassin d'évaporation (Conglomérat)",
+	"fieldsofsalt:block-connector-limestone-*": "Connecteur pour bassin d'évaporation (Calcaire)",
+	"fieldsofsalt:block-connector-peridotite-*": "Connecteur pour bassin d'évaporation (Péridotite)",
+	"fieldsofsalt:block-connector-phyllite-*": "Connecteur pour bassin d'évaporation (Phyllite)",
+	"fieldsofsalt:block-connector-slate-*": "Connecteur pour bassin d'évaporation (Ardoise)",
+	"fieldsofsalt:block-connector-basalt-*": "Connecteur pour bassin d'évaporation (Basalte)",
+	"fieldsofsalt:block-connector-andesite-*": "Connecteur pour bassin d'évaporation (Andésite)",
+	"fieldsofsalt:block-connector-chalk-*": "Connecteur pour bassin d'évaporation (Craie)",
+	"fieldsofsalt:block-connector-claystone-*": "Connecteur pour bassin d'évaporation (Argilite)",
+	"fieldsofsalt:block-connector-granite-*": "Connecteur pour bassin d'évaporation (Granite)",
+	"fieldsofsalt:block-connector-sandstone-*": "Connecteur pour bassin d'évaporation (Grès)",
+	"fieldsofsalt:block-connector-shale-*": "Connecteur pour bassin d'évaporation (Schiste)",
+	"fieldsofsalt:block-connector-suevite-*": "Connecteur pour bassin d'évaporation (Suévite)",
+	"fieldsofsalt:block-connector-kimberlite-*": "Connecteur pour bassin d'évaporation (Kimberlite)",
+	"fieldsofsalt:block-connector-*": "Connecteur pour bassin d'évaporation",
+
+	"fieldsofsalt:block-pondmain": "Bassin d'évaporation",
+	"fieldsofsalt:block-channel-*": "Section de canal",
+	"fieldsofsalt:block-source-*": "Drain",
+
+	"fieldsofsalt:item-pondtemplate": "Bassin d'évaporation (Modèle)",
+
+	"fieldsofsalt:handbooktitle-pond": "Bassin d'évaporation",
+	"fieldsofsalt:handbooktext-pondtemplate": "Le liquide s'évapore dans le bassin pour obtenir des ressources, le taux d'évaporation dépend de la température ambiante. Utilisez une houe pour gratter les sédiments.\n\nPour créer une structure, utilisez le gabarit sur les blocs d'angle.\nLe fond de l'étang doit être recouvert de dalles de n'importe quelle pierre polie, les bords peuvent être constitués de pierre solide polie ou d'un connecteur. Le connecteur doit être tourné vers l'extérieur.",
+
+	"fieldsofsalt:craftinginfo-evaporation-title": "Fields of Salt: Evaporation",
+	"fieldsofsalt:craftinginfo-evaporation-text": "<strong>Marais salants</strong><br><i>Bassins d'évaporation</i><br><br>L'évaporation est l'un des processus les plus simples qui vous permet d'obtenir des ressources sans trop de difficultés. Mais en même temps, c’est l’une des tâches les plus chronophages, prenant des jours et des semaines pour obtenir des résultats. Par conséquent, de vastes zones entièrement recouvertes de bassins d’évaporation sont utilisées pour obtenir de plus grands rendements. Et comme les bassins d’évaporation étaient souvent utilisés pour produire du sel, ces endroits sont devenus connus sous le nom de Champs de Sel.<br><br>Pour commencer à produire du sel à partir de l’eau de mer, vous aurez besoin de bassins d’évaporation. Vous pouvez les créer en utilisant une pierre solide polie comme bordure et en disposant le fond de dalles de pierre polie. Ensuite, vous devez tout vérifier avec le <a href=\"handbook://item-fieldsofsalt:pondtemplate\">modèle</a>, et l'étang est prêt !<br>Mais il semble assez difficile de le remplir constamment avec un seau, vous pouvez donc utiliser le système de canaux pour le remplir directement à partir du réservoir.<br>Ayant placé un <a href=\"handbook://block-fieldsofsalt:source-north\">drain</a> pour filtrer les débris et les êtres vivants, placez <a href=\"handbook://block-fieldsofsalt:channel-ns\">des sections de canal</a> depuis le drain vers le <a href=\"handbook://block-fieldsofsalt:connector-granite-ns\">connecteur</a> dans l'étang. Et désormais, votre bassin sera constamment rempli d’eau de mer.<br>Après avoir attendu un moment, vous pouvez voir que des sédiments s'accumulent au fond. Maintenant, vous devez le gratter avec quelque chose, une houe suffira probablement.",
+
+	"fieldsofsalt:handbooktitle-liquidtransfer": "Transport de liquides",
+	"fieldsofsalt:handbooktext-connector": "Reçoit le liquide des canaux et en remplit l'étang.",
+	"fieldsofsalt:handbooktext-source": "Reçoit le liquide du bloc source de liquide et le transfère aux destinataires via des canaux.",
+
+	"fieldsofsalt:pond-result": "Ramasser",
+
+	"fieldsofsalt:Obtained by evaporation": "Obtenu par évaporation",
+	"fieldsofsalt:{0}x evaporating": "{0}x en train de s'évaporer",
+	"fieldsofsalt:within {0} hours": "dans {0} heures",
+
+	"fieldsofsalt:template-selectcorners": "Sélectionnez les coins",
+
+	"ingameerror-fieldsofsalt:template-toosmall": "Sélection trop petite",
+	"ingameerror-fieldsofsalt:template-toobig": "Sélection trop grande",
+	"ingameerror-fieldsofsalt:template-oddsides": "La sélection doit être impaire",
+	"ingameerror-fieldsofsalt:template-invalidbottom": "Blocs inférieurs invalides",
+	"ingameerror-fieldsofsalt:template-invalidborder": "Blocs de bord invalides"
+}
