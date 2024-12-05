@@ -52,7 +52,7 @@ namespace FieldsOfSalt.Blocks
 			(blockAccessor.GetBlockEntity(pos) as BlockEntitySource)?.RemoveSink(pos.AddCopy(face), face.Opposite, sink);
 		}
 
-		public void GetConnectedSinks(IBlockAccessor blockAccessor, BlockPos pos, Action<BlockPos, BlockFacing, ILiquidSink> addSinkCallback)
+		public void GetConnectedSinks(IBlockAccessor blockAccessor, BlockPos pos, Action<BlockPos, BlockFacing, ILiquidSink> actionCallback)
 		{
 			var tmpPos = pos.Copy();
 			tmpPos.SetAll(pos);
@@ -62,7 +62,7 @@ namespace FieldsOfSalt.Blocks
 				if(conn.CanConnect(blockAccessor, tmpPos, Face))
 				{
 					var sink = conn.GetLiquidSink(blockAccessor, tmpPos, Face);
-					if(sink != null) addSinkCallback(tmpPos, Face, sink);
+					if(sink != null) actionCallback(tmpPos, Face, sink);
 				}
 			}
 		}

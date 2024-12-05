@@ -32,6 +32,7 @@ namespace FieldsOfSalt.Blocks.Entities
 		private ItemStack liquidStack = null;
 		private WaterTightContainableProps liquidProps = null;
 		private LiquidGraphicProps liquidGraphicProps = null;
+		private bool isLoaded = false;
 
 		public override void Initialize(ICoreAPI api)
 		{
@@ -57,7 +58,34 @@ namespace FieldsOfSalt.Blocks.Entities
 					liquidBlock = 0;
 				}
 			}
+
+			var tmpPos = Pos.Copy();
+			var dir = face.Opposite;
+			var accessor = Api.World.BlockAccessor;
+			var blockList = new List<int>();
+			Action<BlockPos, BlockFacing, ILiquidSink> addSinkCallback = AddSink;
+			var prevConnectable = (ILiquidConnectable)Block;
+			for(int i = 0; i < channelLine.Length; i++)
+			{
+				if(!prevConnectable.CanConnect(accessor, tmpPos, dir)) break;
+
+				tmpPos.Add(dir);
+				var block = accessor.GetBlock(channelLine[i]);
+				if(block is ILiquidChannel channel && channel.CanConnect(accessor, tmpPos, face))
+				{
+					blockList.Add(block.Id);
+					prevConnectable = channel;
+				}
+				else break;
+			}
+			channelLine = blockList.ToArray();
 			RegisterMultiblock(0, channelLine.Length);
+
+			isLoaded = true;
+			for(int i = 0; i < channelLine.Length; i++)
+			{
+				((ILiquidChannel)Api.World.GetBlock(channelLine[i])).GetConnectedSinks(accessor, tmpPos, addSinkCallback);
+			}
 
 			RegisterGameTickListener(OnTick, 100);
 		}
@@ -88,14 +116,14 @@ namespace FieldsOfSalt.Blocks.Entities
 					}
 					else break;
 				}
-				if(index < expandedLine.Count)
+				if(channelLine.Length < expandedLine.Count)
 				{
-					this.channelLine = expandedLine.ToArray();
+					channelLine = expandedLine.ToArray();
 
-					RegisterMultiblock(index, channelLine.Length);
-					for(int i = index; i < channelLine.Length; i++)
+					RegisterMultiblock(index, expandedLine.Count);
+					for(int i = index; i < expandedLine.Count; i++)
 					{
-						((ILiquidChannel)Api.World.GetBlock(channelLine[i])).GetConnectedSinks(accessor, tmpPos, addSinkCallback);
+						((ILiquidChannel)Api.World.GetBlock(expandedLine[i])).GetConnectedSinks(accessor, tmpPos, addSinkCallback);
 					}
 					MarkDirty(true);
 				}
@@ -108,9 +136,19 @@ namespace FieldsOfSalt.Blocks.Entities
 			if(index >= 0 && index < channelLine.Length)
 			{
 				int count = channelLine.Length;
-				var lastBlock = Api.World.GetBlock(channelLine[channelLine.Length - 1]);
+				var accessor = Api.World.BlockAccessor;
+				var lastBlock = accessor.GetBlock(channelLine[count - 1]);
 
-				UnregisterMultiblock(index, channelLine.Length, false);
+				Action<BlockPos, BlockFacing, ILiquidSink> delSinkCallback = RemoveSink;
+				var tmpPos = Pos.Copy();
+				var dir = face.Opposite;
+				tmpPos.Add(dir, index);
+				for(int i = index; i < count; i++)
+				{
+					tmpPos.Add(dir);
+					(accessor.GetBlock(channelLine[i]) as ILiquidChannel)?.GetConnectedSinks(accessor, tmpPos, delSinkCallback);
+				}
+				UnregisterMultiblock(index, count, false);
 				Array.Resize(ref channelLine, index);
 				MarkDirty(true);
 
@@ -120,6 +158,8 @@ namespace FieldsOfSalt.Blocks.Entities
 
 		public void AddSink(BlockPos blockPos, BlockFacing connectedFace, ILiquidSink sink)
 		{
+			if(!isLoaded) return;
+
 			sinks[new Xyz(blockPos.X, blockPos.InternalY, blockPos.Z)] = new SinkInfo(connectedFace, sink);
 			if(Api != null && Api.Side == EnumAppSide.Client)
 			{

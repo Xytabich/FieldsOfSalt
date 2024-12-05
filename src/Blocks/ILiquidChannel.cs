@@ -30,8 +30,8 @@ namespace FieldsOfSalt.Blocks
 		/// </summary>
 		/// <param name="blockAccessor"></param>
 		/// <param name="pos">Channel position</param>
-		/// <param name="addSinkCallback">Callback (BlockPos sinkPosition, BlockFacing sinkFace, ILiquidSink sinkInstance)</param>
-		void GetConnectedSinks(IBlockAccessor blockAccessor, BlockPos pos, Action<BlockPos, BlockFacing, ILiquidSink> addSinkCallback);
+		/// <param name="actionCallback">Callback (BlockPos sinkPosition, BlockFacing sinkFace, ILiquidSink sinkInstance)</param>
+		void GetConnectedSinks(IBlockAccessor blockAccessor, BlockPos pos, Action<BlockPos, BlockFacing, ILiquidSink> actionCallback);
 
 		/// <summary>
 		/// Generates liquid mesh according to levels.

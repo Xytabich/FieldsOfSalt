@@ -134,22 +134,22 @@ namespace FieldsOfSalt.Blocks
 			}
 		}
 
-		public void GetConnectedSinks(IBlockAccessor blockAccessor, BlockPos pos, Action<BlockPos, BlockFacing, ILiquidSink> addSinkCallback)
+		public void GetConnectedSinks(IBlockAccessor blockAccessor, BlockPos pos, Action<BlockPos, BlockFacing, ILiquidSink> actionCallback)
 		{
 			if(tmpPos == null) tmpPos = new BlockPos(0);
 			if(axis == EnumAxis.X)
 			{
-				TryAddConnectedSink(blockAccessor, pos, BlockFacing.WEST, addSinkCallback);
-				TryAddConnectedSink(blockAccessor, pos, BlockFacing.EAST, addSinkCallback);
-				TryAddConnectedSink(blockAccessor, pos, BlockFacing.NORTH, addSinkCallback);
-				TryAddConnectedSink(blockAccessor, pos, BlockFacing.SOUTH, addSinkCallback);
+				TryCollectConnectedSink(blockAccessor, pos, BlockFacing.WEST, actionCallback);
+				TryCollectConnectedSink(blockAccessor, pos, BlockFacing.EAST, actionCallback);
+				TryCollectConnectedSink(blockAccessor, pos, BlockFacing.NORTH, actionCallback);
+				TryCollectConnectedSink(blockAccessor, pos, BlockFacing.SOUTH, actionCallback);
 			}
 			else
 			{
-				TryAddConnectedSink(blockAccessor, pos, BlockFacing.NORTH, addSinkCallback);
-				TryAddConnectedSink(blockAccessor, pos, BlockFacing.SOUTH, addSinkCallback);
-				TryAddConnectedSink(blockAccessor, pos, BlockFacing.WEST, addSinkCallback);
-				TryAddConnectedSink(blockAccessor, pos, BlockFacing.EAST, addSinkCallback);
+				TryCollectConnectedSink(blockAccessor, pos, BlockFacing.NORTH, actionCallback);
+				TryCollectConnectedSink(blockAccessor, pos, BlockFacing.SOUTH, actionCallback);
+				TryCollectConnectedSink(blockAccessor, pos, BlockFacing.WEST, actionCallback);
+				TryCollectConnectedSink(blockAccessor, pos, BlockFacing.EAST, actionCallback);
 			}
 		}
 
@@ -276,7 +276,8 @@ namespace FieldsOfSalt.Blocks
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private static void TryAddConnectedSink(IBlockAccessor blockAccessor, BlockPos pos, BlockFacing face, Action<BlockPos, BlockFacing, ILiquidSink> addSinkCallback)
+		private static void TryCollectConnectedSink(IBlockAccessor blockAccessor, BlockPos pos, BlockFacing face,
+			Action<BlockPos, BlockFacing, ILiquidSink> actionCallback)
 		{
 			tmpPos.SetAll(pos);
 			tmpPos.Add(face);
@@ -285,7 +286,7 @@ namespace FieldsOfSalt.Blocks
 				if(conn.CanConnect(blockAccessor, tmpPos, face.Opposite))
 				{
 					var sink = conn.GetLiquidSink(blockAccessor, tmpPos, face.Opposite);
-					if(sink != null) addSinkCallback(tmpPos, face.Opposite, sink);
+					if(sink != null) actionCallback(tmpPos, face.Opposite, sink);
 				}
 			}
 		}

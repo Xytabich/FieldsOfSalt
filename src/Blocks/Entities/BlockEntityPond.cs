@@ -755,6 +755,7 @@ namespace FieldsOfSalt.Blocks.Entities
 				accessor.MarkBlockDirty(tmpPos);
 				return false;
 			}
+
 			IterateStructureBlocks(fromPos, toPos, RegisterBorderBlock, RegisterBlock);
 		}
 
