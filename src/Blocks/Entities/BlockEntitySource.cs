@@ -82,8 +82,10 @@ namespace FieldsOfSalt.Blocks.Entities
 			RegisterMultiblock(0, channelLine.Length);
 
 			isLoaded = true;
+			tmpPos.SetAll(Pos);
 			for(int i = 0; i < channelLine.Length; i++)
 			{
+				tmpPos.Add(dir);
 				((ILiquidChannel)Api.World.GetBlock(channelLine[i])).GetConnectedSinks(accessor, tmpPos, addSinkCallback);
 			}
 
@@ -121,8 +123,10 @@ namespace FieldsOfSalt.Blocks.Entities
 					channelLine = expandedLine.ToArray();
 
 					RegisterMultiblock(index, expandedLine.Count);
+					tmpPos.SetAll(Pos);
 					for(int i = index; i < expandedLine.Count; i++)
 					{
+						tmpPos.Add(dir);
 						((ILiquidChannel)Api.World.GetBlock(expandedLine[i])).GetConnectedSinks(accessor, tmpPos, addSinkCallback);
 					}
 					MarkDirty(true);
@@ -217,8 +221,10 @@ namespace FieldsOfSalt.Blocks.Entities
 			}
 			UpdateLiquidBlock(Api.World.BlockAccessor);
 
+			tmpPos.SetAll(Pos);
 			for(int i = 0; i < channelLine.Length; i++)
 			{
+				tmpPos.Add(dir);
 				((ILiquidChannel)Api.World.GetBlock(channelLine[i])).GetConnectedSinks(accessor, tmpPos, addSinkCallback);
 			}
 			MarkDirty(true);
