@@ -27,14 +27,15 @@
 	"fieldsofsalt:item-pondtemplate": "Evaporation pond (Template)",
 
 	"fieldsofsalt:handbooktitle-pond": "Evaporation pond",
-	"fieldsofsalt:handbooktext-pondtemplate": "The liquid evaporates in the pond to obtain resources, the evaporation rate depends on the ambient temperature. Use a hoe to scrape the sediment.\n\nTo create a structure, use the template on the corner blocks.\nThe bottom of the pond should be covered with slabs of any polished stone, the edges may consist of solid polished stone or a connector. The connector must face outwards.",
+	"fieldsofsalt:handbooktext-pondtemplate": "The liquid evaporates in the pond to obtain resources, the evaporation rate depends on the ambient temperature. Use a hoe to scrape the sediment.\n\nThe structure must have borders and a floor that are one block high (the floor slabs are same level with the border blocks).\nAny polished stone can be used for the borders, and any polished stone slabs can be used for the floor. Border blocks can be replaced with connectors to connect to the channel system.\n\nOnce the structure is built, it needs to be converted into a pond. Use the template on the corners of the structure and the structure will be converted into a pond if everything is ok.",
 
 	"fieldsofsalt:craftinginfo-evaporation-title": "Fields of Salt: Evaporation",
-	"fieldsofsalt:craftinginfo-evaporation-text": "<strong>Evaporation of salt</strong><br><i>Drying basins</i><br><br>Evaporation is one of the simplest processes, allowing you to get resources without much difficulty. But at the same time, one of the most time-consuming, taking days and weeks to get results. Therefore, huge areas completely covered with evaporation ponds are used to obtain the greatest benefits. And since evaporation ponds were often used to produce salt, such places became known as Fields of Salt.<br><br>To start producing salt from seawater, you will need evaporation ponds. You can create them using a solid polished stone as a border, and laying out the bottom of polished stone slabs. Next, you need to check everything with the <a href=\"handbook://item-fieldsofsalt:pondtemplate\">template</a>, and the pond is ready!<br>But it seems to be quite difficult to constantly fill it with a bucket, so you can use the channel system to fill directly from the reservoir.<br>Having placed a <a href=\"handbook://block-fieldsofsalt:source-north\">sluice</a> to filter debris and living creatures, bring <a href=\"handbook://block-fieldsofsalt:channel-ns\">channels</a> from it to the <a href=\"handbook://block-fieldsofsalt:connector-granite-ns\">grooves</a> in the pond. And now your pond will be constantly full of seawater.<br>After waiting for a while, you can see that sediment is collecting at the bottom. Now you need to scrape it off with something, most likely a hoe will be enough.",
+	"fieldsofsalt:craftinginfo-evaporation-text": "<strong>Evaporation of salt</strong><br><i>Drying basins</i><br><br>Evaporation is one of the simplest processes, allowing you to get resources without much difficulty. But at the same time, one of the most time-consuming, taking days and weeks to get results. Therefore, huge areas completely covered with evaporation ponds are used to obtain the greatest benefits. And since evaporation ponds were often used to produce salt, such places became known as Fields of Salt.<br><br>To start producing salt from seawater, you will need evaporation ponds. You can create them using a solid polished stone as a border, and laying out the floor of polished stone slabs. Next, you need to check everything with the <a href=\"handbook://item-fieldsofsalt:pondtemplate\">template</a>, and the pond is ready!<br>But it seems to be quite difficult to constantly fill it with a bucket, so you can use the channel system to fill directly from the reservoir.<br>Having placed a <a href=\"handbook://block-fieldsofsalt:source-north\">sluice</a> to filter debris and living creatures, bring <a href=\"handbook://block-fieldsofsalt:channel-ns\">channels</a> from it to the <a href=\"handbook://block-fieldsofsalt:connector-granite-ns\">grooves</a> in the pond. And now your pond will be constantly full of seawater.<br>After waiting for a while, you can see that sediment is collecting at the bottom. Now you need to scrape it off with something, most likely a hoe will be enough.",
 
 	"fieldsofsalt:handbooktitle-liquidtransfer": "Liquid transportation",
-	"fieldsofsalt:handbooktext-connector": "Receives liquid from the channels and fills the pond with it.",
+	"fieldsofsalt:handbooktext-connector": "Receives liquid from the channels and fills the pond.",
 	"fieldsofsalt:handbooktext-source": "Receives liquid from the liquid source block and transfers it to recipients through channels.",
+	"fieldsofsalt:handbooktext-channel": "Receives liquid from the sluice and distributes it to the connected ponds.",
 
 	"fieldsofsalt:pond-result": "Collect result",
 
@@ -47,6 +48,6 @@
 	"ingameerror-fieldsofsalt:template-toosmall": "Selection too small",
 	"ingameerror-fieldsofsalt:template-toobig": "Selection too big",
 	"ingameerror-fieldsofsalt:template-oddsides": "Selection must be odd",
-	"ingameerror-fieldsofsalt:template-invalidbottom": "Invalid bottom blocks",
-	"ingameerror-fieldsofsalt:template-invalidborder": "Invalid edge blocks"
+	"ingameerror-fieldsofsalt:template-invalidbottom": "Invalid floor blocks",
+	"ingameerror-fieldsofsalt:template-invalidborder": "Invalid border blocks"
 }

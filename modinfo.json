@@ -4,8 +4,8 @@
 	"name": "Fields of Salt",
 	"authors": [ "Xytabich" ],
 	"description": "Adds ponds to evaporate seawater and produce salt",
-	"version": "1.2.2",
+	"version": "1.2.4",
 	"dependencies": {
-		"game": "1.20.0-rc"
+		"game": "1.21.0"
 	}
 }

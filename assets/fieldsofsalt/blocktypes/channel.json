@@ -69,7 +69,13 @@
 			[0.25, 0.25, 0.25, 0.75, 0.875, 0.75]
 		],
 		"handbook": {
-			"groupBy": ["channel-*"]
+			"groupBy": ["channel-*"],
+			"extraSections": [
+				{
+					"title": "fieldsofsalt:handbooktitle-liquidtransfer",
+					"text": "fieldsofsalt:handbooktext-channel"
+				}
+			]
 		}
 	},
 	"creativeinventory": {
