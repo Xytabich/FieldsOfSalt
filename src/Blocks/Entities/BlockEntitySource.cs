@@ -34,6 +34,8 @@ namespace FieldsOfSalt.Blocks.Entities
 		private LiquidGraphicProps liquidGraphicProps = null;
 		private bool isLoaded = false;
 
+		private long animationTickHandle = 0;
+
 		public override void Initialize(ICoreAPI api)
 		{
 			blockSource = (BlockSource)Block;
@@ -89,7 +91,8 @@ namespace FieldsOfSalt.Blocks.Entities
 				((ILiquidChannel)Api.World.GetBlock(channelLine[i])).GetConnectedSinks(accessor, tmpPos, addSinkCallback);
 			}
 
-			RegisterGameTickListener(OnTick, 100);
+			RegisterGameTickListener(OnTick, 1000);
+			animationTickHandle = RegisterGameTickListener(OnAnimationTick, 100);
 		}
 
 		public void AddChannel(BlockPos blockPos)
@@ -444,8 +447,10 @@ namespace FieldsOfSalt.Blocks.Entities
 			{
 				if(fillLevel < channelLine.Length + 8)
 				{
-					fillLevel++;
-					if(Api.Side == EnumAppSide.Client) MarkDirty(true);
+					if(animationTickHandle == 0)
+					{
+						animationTickHandle = RegisterGameTickListener(OnAnimationTick, 100);
+					}
 				}
 				var accessor = Api.World.BlockAccessor;
 				var tmpPos = new BlockPos(0);
@@ -465,14 +470,46 @@ namespace FieldsOfSalt.Blocks.Entities
 			}
 			else if(fillLevel > 0)
 			{
-				fillLevel--;
-				if(Api.Side == EnumAppSide.Client)
+				if(animationTickHandle == 0)
 				{
-					if(fillLevel <= 0)
+					animationTickHandle = RegisterGameTickListener(OnAnimationTick, 100);
+				}
+			}
+		}
+
+		private void OnAnimationTick(float dt)
+		{
+			if(liquidBlock > 0)
+			{
+				if(fillLevel < channelLine.Length + 8)
+				{
+					fillLevel++;
+					if(Api.Side == EnumAppSide.Client) MarkDirty(true);
+				}
+				else
+				{
+					UnregisterGameTickListener(animationTickHandle);
+					animationTickHandle = 0;
+				}
+			}
+			else
+			{
+				if(fillLevel > 0)
+				{
+					fillLevel--;
+					if(Api.Side == EnumAppSide.Client)
 					{
-						liquidGraphicProps = null;
+						if(fillLevel <= 0)
+						{
+							liquidGraphicProps = null;
+						}
+						MarkDirty(true);
 					}
-					MarkDirty(true);
+				}
+				else
+				{
+					UnregisterGameTickListener(animationTickHandle);
+					animationTickHandle = 0;
 				}
 			}
 		}
