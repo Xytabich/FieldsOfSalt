@@ -34,7 +34,13 @@ namespace FieldsOfSalt.Handbook
 			if(tmpList.Count > 0)
 			{
 				outComponents.Add(new ClearFloatTextComponent(capi, 7f));
-				outComponents.Add(new RichTextComponent(capi, Lang.Get("fieldsofsalt:Obtained by evaporation") + "\n", CairoFont.WhiteSmallText().WithWeight(FontWeight.Bold)));
+				outComponents.AddRange(VtmlUtil.Richtextify(capi, Lang.Get("fieldsofsalt:Obtained by evaporation") + "\n",
+					CairoFont.WhiteSmallText().WithWeight(FontWeight.Bold), l => {
+						if(l.Href.StartsWith("handbook://"))
+						{
+							openDetailPageFor(l.Href.Substring("handbook://".Length));
+						}
+					}));
 				foreach(var recipe in tmpList)
 				{
 					var element = new SlideshowItemstackTextComponent(capi, new ItemStack[] { recipe.Input.ResolvedItemstack }, 40.0,
