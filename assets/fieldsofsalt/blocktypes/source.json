@@ -25,7 +25,8 @@
 				}
 			]
 		},
-		"genLitres": 0.04
+		"genLitres": 0.04,
+		"maxDistribution": 32
 	},
 	"creativeinventory": {
 		"general": ["*-north"],

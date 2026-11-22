@@ -7,10 +7,11 @@ using Vintagestory.API.MathTools;
 
 namespace FieldsOfSalt.Blocks
 {
-	public class BlockSource : Block, ILiquidChannel
+	public class BlockSource : Block, IChannelLiquidSource
 	{
-		public BlockFacing Face;
-		public float LitresPerTickGeneration;
+		public BlockFacing Face { get; private set; }
+		public float LitresPerTickGeneration { get; private set; }
+		public int MaxDistribution { get; private set; }
 
 		private Cuboidf fillArea;
 
@@ -19,6 +20,7 @@ namespace FieldsOfSalt.Blocks
 			base.OnLoaded(api);
 			Face = BlockFacing.FromCode(Variant["side"]);
 			LitresPerTickGeneration = Attributes?["genLitres"].AsFloat(0.01f) ?? 0.01f;
+			MaxDistribution = Attributes?["maxDistribution"].AsInt(32) ?? 32;
 
 			fillArea = new Cuboidf();
 			float[] bb = Attributes?["fillArea"].AsArray<float>();
@@ -44,12 +46,12 @@ namespace FieldsOfSalt.Blocks
 
 		public void AddSink(IBlockAccessor blockAccessor, BlockPos pos, BlockFacing face, ILiquidSink sink)
 		{
-			(blockAccessor.GetBlockEntity(pos) as BlockEntitySource)?.AddSink(pos.AddCopy(face), face.Opposite, sink);
+			(blockAccessor.GetBlockEntity(pos) as BlockEntitySource)?.OnChannelConfigurationChanged();
 		}
 
 		public void RemoveSink(IBlockAccessor blockAccessor, BlockPos pos, BlockFacing face, ILiquidSink sink)
 		{
-			(blockAccessor.GetBlockEntity(pos) as BlockEntitySource)?.RemoveSink(pos.AddCopy(face), face.Opposite, sink);
+			(blockAccessor.GetBlockEntity(pos) as BlockEntitySource)?.OnChannelConfigurationChanged();
 		}
 
 		public void GetConnectedSinks(IBlockAccessor blockAccessor, BlockPos pos, Action<BlockPos, BlockFacing, ILiquidSink> actionCallback)
@@ -72,7 +74,7 @@ namespace FieldsOfSalt.Blocks
 			base.OnNeighbourBlockChange(world, pos, neibpos);
 			if(neibpos.FacingFrom(pos).Index == Face.Index)
 			{
-				(world.BlockAccessor.GetBlockEntity(pos) as BlockEntitySource)?.UpdateLiquidBlock(world.BlockAccessor);
+				(world.BlockAccessor.GetBlockEntity(pos) as BlockEntitySource)?.OnSourceBlockChanged();
 			}
 		}
 

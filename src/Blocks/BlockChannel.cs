@@ -121,7 +121,7 @@ namespace FieldsOfSalt.Blocks
 			var mainPos = new BlockPos(0);
 			if(manager.GetReferenceToMainBlock(pos, mainPos))
 			{
-				(blockAccessor.GetBlockEntity(mainPos) as BlockEntitySource)?.AddSink(pos.AddCopy(face), face.Opposite, sink);
+				(blockAccessor.GetBlockEntity(mainPos) as BlockEntitySource)?.OnChannelConfigurationChanged();
 			}
 		}
 
@@ -130,7 +130,7 @@ namespace FieldsOfSalt.Blocks
 			var mainPos = new BlockPos(0);
 			if(manager.GetReferenceToMainBlock(pos, mainPos))
 			{
-				(blockAccessor.GetBlockEntity(mainPos) as BlockEntitySource)?.RemoveSink(pos.AddCopy(face), face.Opposite, sink);
+				(blockAccessor.GetBlockEntity(mainPos) as BlockEntitySource)?.OnChannelConfigurationChanged();
 			}
 		}
 
@@ -187,10 +187,7 @@ namespace FieldsOfSalt.Blocks
 			if(tmpPos == null) tmpPos = new BlockPos(0);
 			if(manager.GetReferenceToMainBlock(pos, tmpPos))
 			{
-				if(api.World.BlockAccessor.GetBlockEntity(tmpPos) is BlockEntitySource source)
-				{
-					source.RemoveChannel(pos);
-				}
+				(api.World.BlockAccessor.GetBlockEntity(tmpPos) as BlockEntitySource)?.OnChannelConfigurationChanged();
 			}
 		}
 
@@ -224,10 +221,7 @@ namespace FieldsOfSalt.Blocks
 				tmpPos.SetAll(pos);
 				tmpPos.Add(face);
 			}
-			if(blockAccessor.GetBlockEntity(tmpPos) is BlockEntitySource source)
-			{
-				source.AddChannel(pos);
-			}
+			(blockAccessor.GetBlockEntity(tmpPos) as BlockEntitySource)?.OnChannelConfigurationChanged();
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

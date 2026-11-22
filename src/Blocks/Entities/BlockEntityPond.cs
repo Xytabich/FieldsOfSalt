@@ -2,7 +2,9 @@
 using FieldsOfSalt.Recipes;
 using FieldsOfSalt.Utils;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -54,8 +56,6 @@ namespace FieldsOfSalt.Blocks.Entities
 		private bool multiblockRegistered = false;
 		private FieldsOfSaltMod mod;
 		private MultiblockManager multiblockManager;
-
-		private WorldInteraction[] pickInteractionHelp = null;
 
 		public override void Initialize(ICoreAPI api)
 		{
@@ -398,17 +398,29 @@ namespace FieldsOfSalt.Blocks.Entities
 			if(slot?.Itemstack?.Collectible.Tool == EnumTool.Hoe)
 			{
 				if(recipe == null) return;
-				int index = (blockSel.Position.X - (Pos.X - ((size.X - 2) >> 1))) + (blockSel.Position.Z - (Pos.Z - ((size.Y - 2) >> 1))) * (size.X - 2);
-				if(index < 0 || index >= ((size.X - 2) * (size.Y - 2))) return;
-				int value = layersPacked[index >> 1];
-				int amount = (index & 1) == 0 ? (value & 15) : (value >> 4);
-				if(amount > 0)
+				var offset = new Vec2iStruct(
+					blockSel.Position.X - Pos.X + (size.X - 2) / 2,
+					blockSel.Position.Z - Pos.Z + (size.Y - 2) / 2
+				);
+				if((uint)offset.X >= (uint)(size.X - 2) || (uint)offset.Y >= (uint)(size.Y - 2)) return;
+
+				using var grid = new PondGrid(layersPacked, new(size.X - 2, size.Y - 2));
+				grid.UpdateFreeSpace();
+				if(grid.TryTakeCell(offset, out uint amount))
 				{
-					layersPacked[index >> 1] = (byte)((index & 1) == 0 ? (value & 240) : (value & 15));
-					if(amount == 15) CalculateAreaAndCapacity();
+					if(amount == 15)
+					{
+						CalculateAreaAndCapacity(in grid);
+					}
+					else
+					{
+						CalculateLiquidCapacity(in grid);
+					}
+
+					grid.Read(layersPacked);
 
 					var output = recipe.Output.ResolvedItemstack.Clone();
-					output.StackSize = amount;
+					output.StackSize = (int)amount;
 					Api.World.SpawnItemEntity(output, blockSel.FullPosition);
 
 					MarkDirty(true);
@@ -485,7 +497,7 @@ namespace FieldsOfSalt.Blocks.Entities
 				{
 					if(recipe == null)
 					{
-						Buffer.SetByte(layersPacked, 0, 0);
+						layersPacked.AsSpan().Clear();
 						layerProgress = 0;
 						prevCalendarHour = Api.World.Calendar.TotalHours;
 						evaporationArea = (size.X - 2) * (size.Y - 2);
@@ -521,17 +533,13 @@ namespace FieldsOfSalt.Blocks.Entities
 
 		private WorldInteraction[] GetPickInteractionHelp()
 		{
-			if(pickInteractionHelp == null)
-			{
-				pickInteractionHelp = new WorldInteraction[] {
-					new WorldInteraction() {
-						ActionLangCode = "fieldsofsalt:pond-result",
-						MouseButton = EnumMouseButton.Right,
-						Itemstacks = Array.ConvertAll(Api.World.SearchItems(new AssetLocation("hoe-*")), i => new ItemStack(i))
-					}
-				};
-			}
-			return pickInteractionHelp;
+			return ObjectCacheUtil.GetOrCreate(Api, "fieldsofsalt:pond-interaction-help", () => new WorldInteraction[] {
+				new() {
+					ActionLangCode = "fieldsofsalt:pond-result",
+					MouseButton = EnumMouseButton.Right,
+					Itemstacks = Array.ConvertAll(Api.World.SearchItems(new AssetLocation("hoe-*")), i => new ItemStack(i))
+				}
+			});
 		}
 
 		private void PickLiquid(ItemStack liquid)
@@ -540,8 +548,12 @@ namespace FieldsOfSalt.Blocks.Entities
 			{
 				liquid.StackSize = Math.Max(liquidCapacity - currentLiquidStack.StackSize, 0);
 			}
+			if(liquid.StackSize == 0)
+			{
+				return;
+			}
 			currentLiquidStack.StackSize += liquid.StackSize;
-			if(!markDirtyNext && Api is ICoreServerAPI sapi)
+			if(Api is ICoreServerAPI sapi)
 			{
 				sapi.Network.BroadcastBlockEntityPacket<int>(Pos, 2001, currentLiquidStack?.StackSize ?? 0);
 			}
@@ -553,117 +565,54 @@ namespace FieldsOfSalt.Blocks.Entities
 
 			if(currentLiquidStack != null)
 			{
-				var temperature = Api.World.BlockAccessor.GetClimateAt(Pos, EnumGetClimateMode.ForSuppliedDate_TemperatureOnly,
-					prevCalendarHour / Api.World.Calendar.HoursPerDay).Temperature;
-				var timeProgress = recipe.GetProgress(Api.World.Calendar.TotalHours - prevCalendarHour, temperature);
-
-				double unitsInLayer = recipe.Input.StackSize * evaporationArea;
-				int prevStepEvaporatedTotal = (int)(layerProgress * unitsInLayer);
-				int evaporatedUnits = (int)((layerProgress + timeProgress) * unitsInLayer) - prevStepEvaporatedTotal;
-				if(evaporatedUnits > 0)
-				{
-					evaporatedUnits = Math.Min(evaporatedUnits, currentLiquidStack.StackSize);
-					currentLiquidStack.StackSize -= evaporatedUnits;
-					if(currentLiquidStack.StackSize == 0)
-					{
-						currentLiquidStack = null;
-						markDirtyNext = true;
-					}
-
-					layerProgress += (double)evaporatedUnits / unitsInLayer;
-					if(layerProgress >= 1)
-					{
-						int addLayers = (int)layerProgress;
-						layerProgress -= addLayers;
-						int addOutputUnitsAmount = addLayers * recipe.Output.StackSize * evaporationArea;
-						evaporationArea = (size.X - 2) * (size.Y - 2);
-
-						int count = ((size.X - 2) * (size.Y - 2)) >> 1;
-						int usedLayers = 0;
-						for(int i = 0; i < count; i++)
-						{
-							uint value = layersPacked[i];
-
-							int size = (int)(value & 0x0F);
-							if(size < 15)
-							{
-								size += addLayers;
-								if(size >= 15)
-								{
-									value |= 0x0F;
-									addOutputUnitsAmount -= addLayers - (size - 15);
-									addLayers = addOutputUnitsAmount / recipe.Output.StackSize;
-									evaporationArea--;
-									usedLayers += 15;
-								}
-								else
-								{
-									value = (uint)size | (value & 0xF0);
-									addOutputUnitsAmount -= addLayers;
-									usedLayers += size;
-								}
-							}
-							else
-							{
-								usedLayers += 15;
-								evaporationArea--;
-							}
-
-							size = (int)(value >> 4);
-							if(size < 15)
-							{
-								size += addLayers;
-								if(size >= 15)
-								{
-									value |= 0xF0;
-									addOutputUnitsAmount -= addLayers - (size - 15);
-									addLayers = addOutputUnitsAmount / recipe.Output.StackSize;
-									evaporationArea--;
-									usedLayers += 15;
-								}
-								else
-								{
-									value = ((uint)size << 4) | (value & 0x0F);
-									addOutputUnitsAmount -= addLayers;
-									usedLayers += size;
-								}
-							}
-							else
-							{
-								usedLayers += 15;
-								evaporationArea--;
-							}
-
-							layersPacked[i] = (byte)value;
-						}
-						{
-							int size = addOutputUnitsAmount + layersPacked[count];
-							if(size >= 15)
-							{
-								layersPacked[count] = 15;
-								usedLayers += 15;
-								evaporationArea--;
-							}
-							else
-							{
-								layersPacked[count] = (byte)Math.Max(size, 0);
-								usedLayers += size;
-							}
-						}
-						CalculateLiquidCapacity(usedLayers);
-						markDirtyNext = true;
-					}
-					else if(!markDirtyNext && Api is ICoreServerAPI sapi)
-					{
-						sapi.Network.BroadcastBlockEntityPacket<int>(Pos, 2001, currentLiquidStack?.StackSize ?? 0);
-					}
-				}
+				UpdateEvaporation();
 			}
 			prevCalendarHour = Api.World.Calendar.TotalHours;
 			if(markDirtyNext)
 			{
 				markDirtyNext = false;
 				MarkDirty(true);
+			}
+		}
+
+		private void UpdateEvaporation()
+		{
+			var temperature = Api.World.BlockAccessor.GetClimateAt(Pos, EnumGetClimateMode.ForSuppliedDate_TemperatureOnly,
+				prevCalendarHour / Api.World.Calendar.HoursPerDay).Temperature;
+			var timeProgress = recipe.GetProgress(Api.World.Calendar.TotalHours - prevCalendarHour, temperature);
+
+			double unitsInLayer = recipe.Input.StackSize * evaporationArea;
+			int prevStepEvaporatedTotal = (int)(layerProgress * unitsInLayer);
+			int evaporatedUnits = (int)((layerProgress + timeProgress) * unitsInLayer) - prevStepEvaporatedTotal;
+			if(evaporatedUnits > 0)
+			{
+				evaporatedUnits = Math.Min(evaporatedUnits, currentLiquidStack.StackSize);
+				currentLiquidStack.StackSize -= evaporatedUnits;
+				if(currentLiquidStack.StackSize == 0)
+				{
+					currentLiquidStack = null;
+					markDirtyNext = true;
+				}
+
+				layerProgress += (double)evaporatedUnits / unitsInLayer;
+				if(layerProgress >= 1)
+				{
+					int addLayers = (int)layerProgress;
+					layerProgress -= addLayers;
+
+					using var grid = new PondGrid(layersPacked, new(size.X - 2, size.Y - 2));
+					grid.UpdateFreeSpace();
+					grid.AddLayers((uint)addLayers);
+					grid.DistributeLayers();
+					grid.Read(layersPacked);
+
+					CalculateAreaAndCapacity(in grid);
+					markDirtyNext = true;
+				}
+				else if(!markDirtyNext && Api is ICoreServerAPI sapi)
+				{
+					sapi.Network.BroadcastBlockEntityPacket<int>(Pos, 2001, currentLiquidStack?.StackSize ?? 0);
+				}
 			}
 		}
 
@@ -684,8 +633,18 @@ namespace FieldsOfSalt.Blocks.Entities
 				if(currentLiquidStack != null)
 				{
 					int amount = SerializerUtil.Deserialize<int>(data);
-					if(amount <= 0) currentLiquidStack = null;
-					else currentLiquidStack.StackSize = amount;
+					if(amount <= 0)
+					{
+						currentLiquidStack = null;
+					}
+					else
+					{
+						if(currentLiquidStack.StackSize == amount)
+						{
+							return;
+						}
+						currentLiquidStack.StackSize = amount;
+					}
 					markDirtyNext = true;
 				}
 			}
@@ -693,27 +652,23 @@ namespace FieldsOfSalt.Blocks.Entities
 
 		private void CalculateAreaAndCapacity()
 		{
-			evaporationArea = (size.X - 2) * (size.Y - 2);
-			int usedLayers = 0;
-			int count = ((size.X - 2) * (size.Y - 2)) >> 1;
-			for(int i = 0; i < count; i++)
-			{
-				uint value = layersPacked[i];
+			using var grid = new PondGrid(layersPacked, new(size.X - 2, size.Y - 2));
+			grid.UpdateFreeSpace();
 
-				int size = (int)(value & 15);
-				usedLayers += size;
-				if(size == 15) evaporationArea--;
+			CalculateAreaAndCapacity(in grid);
+		}
 
-				size = (int)(value >> 4);
-				usedLayers += size;
-				if(size == 15) evaporationArea--;
-			}
-			{
-				int size = layersPacked[count];
-				usedLayers += size;
-				if(size == 15) evaporationArea--;
-			}
-			CalculateLiquidCapacity(usedLayers);
+		private void CalculateAreaAndCapacity(ref readonly PondGrid grid)
+		{
+			evaporationArea = grid.CalculateNonFullCells();
+
+			CalculateLiquidCapacity(in grid);
+		}
+
+		private void CalculateLiquidCapacity(ref readonly PondGrid grid)
+		{
+			int totalLayers = (size.X - 2) * (size.Y - 2) * 15;
+			CalculateLiquidCapacity(totalLayers - Math.Max(0, grid.FreeSpace));
 		}
 
 		private void CalculateLiquidCapacity(int layersUsedByOutput)
@@ -952,6 +907,181 @@ namespace FieldsOfSalt.Blocks.Entities
 			{
 				this.pos = pos;
 				this.face = face;
+			}
+		}
+
+		private ref struct PondGrid
+		{
+			private const uint MAX_LAYER_SIZE = 15;
+
+			public int FreeSpace { get; private set; }
+
+			private readonly uint[] array;
+			private readonly Vec2iStruct size;
+			private readonly Span<uint> grid;
+
+			public PondGrid(ReadOnlySpan<byte> data, Vec2iStruct size)
+			{
+				this.size = size;
+
+				int gridSize = size.X * size.Y;
+				array = ArrayPool<uint>.Shared.Rent(gridSize);
+				grid = array.AsSpan(0, gridSize);
+
+				int counter = gridSize;
+				int gridIndex = 0;
+				foreach(byte b in data.Slice(0, (gridSize + 1) / 2))
+				{
+					grid[gridIndex] = (uint)(b & 0xf);
+
+					counter--;
+					gridIndex++;
+					if(counter != 0)
+					{
+						grid[gridIndex] = (uint)(b >> 4);
+
+						counter--;
+						gridIndex++;
+					}
+				}
+			}
+
+			public readonly void Read(Span<byte> data)
+			{
+				int gridSize = size.X * size.Y;
+				int dataSize = (gridSize + 1) / 2;
+				int counter = gridSize;
+				int gridIndex = 0;
+				for(int i = 0; i < dataSize; i++)
+				{
+					uint value = grid[gridIndex] & 0xf;
+					counter--;
+					gridIndex++;
+					if(counter != 0)
+					{
+						value |= grid[gridIndex] << 4;
+
+						counter--;
+						gridIndex++;
+					}
+					data[i] = (byte)value;
+				}
+			}
+
+			public void UpdateFreeSpace()
+			{
+				int space = 0;
+				foreach(var c in grid)
+				{
+					space += 15 - (int)c;
+				}
+				FreeSpace = space;
+			}
+
+			public void AddLayers(uint numLayers)
+			{
+				for(int i = 0; i < grid.Length; i++)
+				{
+					grid[i] += numLayers;
+				}
+				FreeSpace -= (int)numLayers * grid.Length;
+			}
+
+			public readonly void DistributeLayers()
+			{
+				if(FreeSpace <= 0)
+				{
+					grid.Fill(MAX_LAYER_SIZE);
+				}
+				else
+				{
+					for(int i = 0; i < grid.Length; i++)
+					{
+						if(grid[i] > MAX_LAYER_SIZE)
+						{
+							CompressCell(i);
+						}
+					}
+				}
+			}
+
+			private readonly void CompressCell(int cellIndex)
+			{
+				uint remaining = grid[cellIndex] - MAX_LAYER_SIZE;
+				grid[cellIndex] = MAX_LAYER_SIZE;
+
+				int cx = cellIndex % size.X;
+				int cy = cellIndex / size.X;
+				int maxRadius = (size.X - 1) + (size.Y - 1);
+
+				for(int r = 1; r <= maxRadius; r++)
+				{
+					for(int dy = -r; dy <= r; dy++)
+					{
+						int dx = r - Math.Abs(dy);
+						int y = cy + dy;
+
+						if((uint)y >= (uint)size.Y) continue;
+
+						int x = cx + dx;
+						if((uint)x < (uint)size.X)
+						{
+							FillCell(y * size.X + x, ref remaining);
+							if(remaining == 0) return;
+						}
+
+						if(dx == 0) continue;
+
+						x = cx - dx;
+						if((uint)x < (uint)size.X)
+						{
+							FillCell(y * size.X + x, ref remaining);
+							if(remaining == 0) return;
+						}
+					}
+				}
+			}
+
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			private readonly void FillCell(int cellIndex, ref uint remaining)
+			{
+				uint cellValue = grid[cellIndex];
+				if(cellValue >= MAX_LAYER_SIZE) return;
+
+				uint diff = Math.Min(remaining, MAX_LAYER_SIZE - cellValue);
+
+				grid[cellIndex] = cellValue + diff;
+				remaining -= diff;
+			}
+
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			public readonly int CalculateNonFullCells()
+			{
+				if(FreeSpace <= 0) return 0;
+				int counter = 0;
+				foreach(var c in grid)
+				{
+					if(c < 15) counter++;
+				}
+				return counter;
+			}
+
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			public bool TryTakeCell(Vec2iStruct offset, out uint amount)
+			{
+				int cellIndex = offset.X + offset.Y * size.X;
+				amount = grid[cellIndex];
+				if(amount == 0) return false;
+
+				grid[cellIndex] = 0;
+				FreeSpace += (int)amount;
+				return true;
+			}
+
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			public readonly void Dispose()
+			{
+				ArrayPool<uint>.Shared.Return(array, false);
 			}
 		}
 	}
